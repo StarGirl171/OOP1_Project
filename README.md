@@ -1,2 +1,2 @@
-# OOP Part 1 Project - Personal Calendar
+# Personal Calendar
 Христина Павлинова Василева СИТ 1а 24621666 Проект ООП - 1 част
