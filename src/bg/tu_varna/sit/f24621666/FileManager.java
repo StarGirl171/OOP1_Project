@@ -1,0 +1,84 @@
+package bg.tu_varna.sit.f24621666;
+
+import java.io.*;
+
+public class FileManager {
+
+    private File currentFile;
+    private boolean isOpen = false;
+
+    private boolean checkFileOpen() {
+        if (!isOpen) {
+            System.out.println("No file is currently open");
+            return false;
+        }
+        return true;
+    }
+
+    public void open(String path) {
+        try {
+            currentFile = new File(path);
+
+            if (!currentFile.exists()) {
+                boolean created = currentFile.createNewFile();
+
+                if (created) {
+                    System.out.println("File created: " + currentFile.getName());
+                }
+            }
+
+            isOpen = true;
+            System.out.println("Successfully opened " + currentFile.getName());
+
+        } catch (IOException e) {
+            System.out.println("Error opening file");
+        }
+    }
+
+    public void close() {
+        if (!isOpen) {
+            System.out.println("No file is currently open");
+            return;
+        }
+
+        currentFile = null;
+        isOpen = false;
+
+        System.out.println("Successfully closed file");
+    }
+
+    public void save() {
+
+        if (!checkFileOpen()) return;
+
+        try (FileWriter writer = new FileWriter(currentFile)) {
+
+            writer.write("");
+
+            System.out.println("Successfully saved " + currentFile.getName());
+
+        } catch (IOException e) {
+
+            System.out.println("Error saving file");
+        }
+    }
+
+    public void saveAs(String path) {
+        if (!checkFileOpen()) return;
+
+        try {
+            File newFile = new File(path);
+
+            FileWriter writer = new FileWriter(newFile);
+            writer.write("");
+            writer.close();
+
+            currentFile = newFile;
+
+            System.out.println("Successfully saved " + newFile.getName());
+
+        } catch (IOException e) {
+            System.out.println("Error saving file");
+        }
+    }
+}
