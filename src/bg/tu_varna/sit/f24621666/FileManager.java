@@ -10,9 +10,9 @@ public class FileManager {
     private boolean checkFileOpen() {
         if (!isOpen) {
             System.out.println("No file is currently open");
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     public void open(String path) {
@@ -49,7 +49,7 @@ public class FileManager {
 
     public void save() {
 
-        if (!checkFileOpen()) return;
+        if (checkFileOpen()) return;
 
         try (FileWriter writer = new FileWriter(currentFile)) {
 
@@ -64,7 +64,7 @@ public class FileManager {
     }
 
     public void saveAs(String path) {
-        if (!checkFileOpen()) return;
+        if (checkFileOpen()) return;
 
         try {
             File newFile = new File(path);
