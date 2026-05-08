@@ -9,6 +9,10 @@ public class SaveCommand implements Command {
 
     @Override
     public void execute(String[] args) {
+        if (!fileManager.isOpen()) {
+            System.out.println("Грешка: Трябва първо да отворите файл!");
+            return;
+        }
         fileManager.save();
     }
 

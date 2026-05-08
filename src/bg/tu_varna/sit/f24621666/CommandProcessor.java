@@ -5,13 +5,15 @@ import java.util.Map;
 
 public class CommandProcessor {
     private final Map<String, Command> commands = new HashMap<>();
-    private final FileManager fileManager = new FileManager();
+    private final CalendarManager calendarManager = new CalendarManager();
+    private final FileManager fileManager = new FileManager(calendarManager);
 
     public CommandProcessor() {
         registerCommand(new OpenCommand(fileManager));
         registerCommand(new CloseCommand(fileManager));
         registerCommand(new SaveCommand(fileManager));
         registerCommand(new SaveAsCommand(fileManager));
+        registerCommand(new BookCommand(fileManager, calendarManager));
         // HelpCommand има нужда от списъка с всички команди, за да ги показва
         registerCommand(new HelpCommand(commands.values()));
     }
