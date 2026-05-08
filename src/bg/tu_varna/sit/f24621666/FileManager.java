@@ -48,7 +48,7 @@ public class FileManager {
 
     public void save() {
 
-        if (checkFileOpen()) return;
+        if (isOpen()) return;
 
         try (FileWriter writer = new FileWriter(currentFile)) {
 
@@ -63,7 +63,7 @@ public class FileManager {
     }
 
     public void saveAs(String path) {
-        if (checkFileOpen()) return;
+        if (isOpen) return;
 
         try {
             File newFile = new File(path);
