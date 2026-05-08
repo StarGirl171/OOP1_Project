@@ -1,5 +1,8 @@
 package bg.tu_varna.sit.f24621666;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 public class ChangeCommand implements Command {
     private final FileManager fileManager;
     private final CalendarManager calendarManager;
@@ -21,7 +24,17 @@ public class ChangeCommand implements Command {
             return;
         }
 
-        System.out.println("Change command recognized. Updating logic...");
+        try {
+            LocalDate date = LocalDate.parse(args[0]);
+            LocalTime start = LocalTime.parse(args[1]);
+            LocalTime end = LocalTime.parse(args[2]);
+            String option = args[3];
+            String newValue = args[4];
+
+            calendarManager.changeEvent(date, start, end, option, newValue);
+        } catch (Exception e) {
+            System.out.println("Error: Invalid input format.");
+        }
     }
 
     @Override

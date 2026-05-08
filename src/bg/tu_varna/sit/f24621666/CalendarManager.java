@@ -53,6 +53,52 @@ public class CalendarManager {
         }
     }
 
+    public void changeEvent(LocalDate date, LocalTime start, LocalTime end, String option, String newValue) {
+        Event foundEvent = null;
+        for (Event e : events) {
+            if (e.getDate().equals(date) && e.getStartTime().equals(start) && e.getEndTime().equals(end)) {
+                foundEvent = e;
+                break;
+            }
+        }
+
+        if (foundEvent == null) {
+            System.out.println("Error: Event not found.");
+            return;
+        }
+
+        // Премахваме старото
+        events.remove(foundEvent);
+
+        // Подготвяме данните за новото (копираме старите и променяме само избраното)
+        LocalDate newDate = foundEvent.getDate();
+        LocalTime newStart = foundEvent.getStartTime();
+        LocalTime newEnd = foundEvent.getEndTime();
+        String newName = foundEvent.getName();
+        String newNote = foundEvent.getNote();
+
+        try {
+            switch (option.toLowerCase()) {
+                case "date": newDate = LocalDate.parse(newValue); break;
+                case "starttime": newStart = LocalTime.parse(newValue); break;
+                case "endtime": newEnd = LocalTime.parse(newValue); break;
+                case "name": newName = newValue; break;
+                case "note": newNote = newValue; break;
+                default:
+                    System.out.println("Error: Invalid option. Use: date, starttime, endtime, name, note.");
+                    events.add(foundEvent); // Връщаме го обратно, ако опцията е грешна
+                    return;
+            }
+
+            Event updatedEvent = new Event(newDate, newStart, newEnd, newName, newNote);
+            events.add(updatedEvent);
+            System.out.println("Event updated successfully.");
+        } catch (Exception e) {
+            System.out.println("Error: Could not update event. Check your input format.");
+            events.add(foundEvent); // Връщаме оригиналното събитие при грешка
+        }
+    }
+
     public void clearEvents() {
         events.clear();
     }
