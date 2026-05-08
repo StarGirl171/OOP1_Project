@@ -99,6 +99,25 @@ public class CalendarManager {
         }
     }
 
+    public void findEvents(String search) {
+        String query = search.toLowerCase();
+        boolean found = false;
+        System.out.println("Search results for '" + search + "':");
+
+        for (Event event : events) {
+            // Проверяваме името и бележката (превръщаме в малки букви за по-лесно търсене)
+            if (event.getName().toLowerCase().contains(query) ||
+                    event.getNote().toLowerCase().contains(query)) {
+                System.out.println(event.getDate() + ": " + event);
+                found = true;
+            }
+        }
+
+        if (!found) {
+            System.out.println("No events match your search criteria.");
+        }
+    }
+
     public void clearEvents() {
         events.clear();
     }
