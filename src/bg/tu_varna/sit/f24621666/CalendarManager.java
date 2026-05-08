@@ -21,4 +21,8 @@ public class CalendarManager {
             }
         }
     }
+
+    public void clearEvents() {
+        events.clear();
+    }
 }

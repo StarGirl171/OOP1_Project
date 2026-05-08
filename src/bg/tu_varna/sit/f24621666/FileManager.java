@@ -6,13 +6,14 @@ public class FileManager {
 
     private File currentFile;
     private boolean isOpen = false;
+    private final CalendarManager calendarManager; // Връзка с данните
 
-    private boolean checkFileOpen() {
-        if (!isOpen) {
-            System.out.println("No file is currently open");
-            return true;
-        }
-        return false;
+    public FileManager(CalendarManager calendarManager) {
+        this.calendarManager = calendarManager;
+    }
+
+    public boolean isOpen() {
+        return isOpen;
     }
 
     public void open(String path) {
@@ -20,18 +21,15 @@ public class FileManager {
             currentFile = new File(path);
 
             if (!currentFile.exists()) {
-                boolean created = currentFile.createNewFile();
-
-                if (created) {
-                    System.out.println("File created: " + currentFile.getName());
-                }
+                currentFile.createNewFile();
+                System.out.println("Created new empty file:" + currentFile.getName());
             }
 
             isOpen = true;
             System.out.println("Successfully opened " + currentFile.getName());
 
         } catch (IOException e) {
-            System.out.println("Error opening file");
+            System.out.println("Error: Could not open file.");
         }
     }
 
@@ -40,7 +38,8 @@ public class FileManager {
             System.out.println("No file is currently open");
             return;
         }
-
+        // При затваряне изчистваме текущите данни от паметта
+        calendarManager.clearEvents();
         currentFile = null;
         isOpen = false;
 
