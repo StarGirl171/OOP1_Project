@@ -15,6 +15,7 @@ public class CommandProcessor {
         registerCommand(new SaveAsCommand(fileManager));
         registerCommand(new BookCommand(fileManager, calendarManager));
         registerCommand(new AgendaCommand(fileManager, calendarManager));
+        registerCommand(new UnbookCommand(fileManager, calendarManager));
         // HelpCommand има нужда от списъка с всички команди, за да ги показва
         registerCommand(new HelpCommand(commands.values()));
     }

@@ -18,6 +18,22 @@ public class Event {
         this.note = note;
     }
 
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    public LocalTime getEndTime() {
+        return endTime;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
     public LocalDate getDate() {
         return date;
     }
