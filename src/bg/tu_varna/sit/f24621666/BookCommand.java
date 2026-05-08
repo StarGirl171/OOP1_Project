@@ -15,12 +15,12 @@ public class BookCommand implements Command {
     @Override
     public void execute(String[] args) {
         if (!fileManager.isOpen()) {
-            System.out.println("Грешка: Трябва първо да отворите файл!");
+            System.out.println("Error: Please open a file first.");
             return;
         }
 
         if (args.length < 5) {
-            System.out.println("Употреба: book <date> <starttime> <endtime> <name> <note>");
+            System.out.println("Usage: book <date> <start> <end> <name> <note> ");
             return;
         }
 
@@ -34,7 +34,7 @@ public class BookCommand implements Command {
             Event event = new Event(date, start, end, name, note);
             calendarManager.addEvent(event);
         } catch (Exception e) {
-            System.out.println("Грешка: Невалиден формат на данните.");
+            System.out.println("Error: Invalid input format.");
         }
     }
 
@@ -42,5 +42,5 @@ public class BookCommand implements Command {
     public String getName() { return "book"; }
 
     @Override
-    public String getHelp() { return "book <date> <starttime> <endtime> <name> <note> - запазва час за среща"; }
+    public String getHelp() { return "book <date> <start> <end> <name> <note> - books an appointment"; }
 }

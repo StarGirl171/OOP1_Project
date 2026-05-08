@@ -14,12 +14,12 @@ public class AgendaCommand implements Command {
     @Override
     public void execute(String[] args) {
         if (!fileManager.isOpen()) {
-            System.out.println("Грешка: Трябва първо да отворите файл!");
+            System.out.println("Error: Please open a file first.");
             return;
         }
 
         if (args.length < 1) {
-            System.out.println("Употреба: agenda <date>");
+            System.out.println("Usage: agenda <date>");
             return;
         }
 
@@ -27,7 +27,7 @@ public class AgendaCommand implements Command {
             LocalDate date = LocalDate.parse(args[0]);
             calendarManager.showAgenda(date);
         } catch (Exception e) {
-            System.out.println("Грешка: Невалиден формат на датата.");
+            System.out.println("Error: Invalid input format.");
         }
     }
 
@@ -35,5 +35,5 @@ public class AgendaCommand implements Command {
     public String getName() { return "agenda"; }
 
     @Override
-    public String getHelp() { return "agenda <date> - извежда списък с ангажименти за деня"; }
+    public String getHelp() { return "agenda <date> - lists all appointments for a specific date"; }
 }

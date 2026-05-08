@@ -2,9 +2,10 @@ package bg.tu_varna.sit.f24621666;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class CommandProcessor {
-    private final Map<String, Command> commands = new HashMap<>();
+    private final TreeMap<String, Command> commands = new TreeMap<>();
     private final CalendarManager calendarManager = new CalendarManager();
     private final FileManager fileManager = new FileManager(calendarManager);
 
