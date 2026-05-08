@@ -11,6 +11,7 @@ public class CommandProcessor {
         registerCommand(new OpenCommand(fileManager));
         registerCommand(new CloseCommand(fileManager));
         registerCommand(new SaveCommand(fileManager));
+        registerCommand(new SaveAsCommand(fileManager));
         // HelpCommand има нужда от списъка с всички команди, за да ги показва
         registerCommand(new HelpCommand(commands.values()));
     }
