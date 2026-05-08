@@ -8,9 +8,11 @@ public class CommandProcessor {
     private final FileManager fileManager = new FileManager();
 
     public CommandProcessor() {
-        // Тук регистрираме всички команди
         registerCommand(new OpenCommand(fileManager));
-        // По-късно ще добавим и останалите тук
+        registerCommand(new CloseCommand(fileManager));
+        registerCommand(new SaveCommand(fileManager));
+        // HelpCommand има нужда от списъка с всички команди, за да ги показва
+        registerCommand(new HelpCommand(commands.values()));
     }
 
     private void registerCommand(Command command) {
