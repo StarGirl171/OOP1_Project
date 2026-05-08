@@ -10,7 +10,7 @@ public class SaveAsCommand implements Command {
     @Override
     public void execute(String[] args) {
         if (!fileManager.isOpen()) {
-            System.out.println("Грешка: Трябва първо да отворите файл!");
+            System.out.println("Error: Please open a file first.");
             return;
         }
 

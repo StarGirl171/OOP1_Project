@@ -48,7 +48,7 @@ public class FileManager {
 
     public void save() {
 
-        if (isOpen()) return;
+        if (!isOpen()) return;
 
         try (FileWriter writer = new FileWriter(currentFile)) {
 
