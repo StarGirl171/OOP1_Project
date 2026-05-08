@@ -30,8 +30,13 @@ public class CommandProcessor {
     }
 
     public boolean processCommand(String input) {
-        String[] parts = input.split(" ");
-        String commandName = parts[0];
+        // Този израз разделя по интервали, но запазва текста в кавичките като един елемент
+        String[] parts = input.trim().split("\\s+(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+
+        // След това махаме кавичките от самите аргументи, за да не се пазят в базата
+        for (int i = 0; i < parts.length; i++) {
+            parts[i] = parts[i].replace("\"", "");
+        }        String commandName = parts[0];
 
         if (commandName.equals("exit")) {
             System.out.println("Exiting...");
