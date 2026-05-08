@@ -118,6 +118,28 @@ public class CalendarManager {
         }
     }
 
+    public List<Event> getAllEvents() {
+        return events;
+    }
+
+    public void loadEventFromLine(String line) {
+        try {
+            String[] p = line.split(",");
+            if (p.length == 5) {
+                Event e = new Event(
+                        java.time.LocalDate.parse(p[0]),
+                        java.time.LocalTime.parse(p[1]),
+                        java.time.LocalTime.parse(p[2]),
+                        p[3],
+                        p[4]
+                );
+                events.add(e);
+            }
+        } catch (Exception e) {
+            // Пропускаме невалидни редове
+        }
+    }
+
     public void clearEvents() {
         events.clear();
     }

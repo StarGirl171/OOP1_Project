@@ -23,6 +23,14 @@ public class FileManager {
             if (!currentFile.exists()) {
                 currentFile.createNewFile();
                 System.out.println("Created new empty file:" + currentFile.getName());
+            } else {
+                // Четем съществуващите данни
+                try (BufferedReader reader = new BufferedReader(new FileReader(currentFile))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        calendarManager.loadEventFromLine(line);
+                    }
+                }
             }
 
             isOpen = true;
@@ -48,17 +56,19 @@ public class FileManager {
 
     public void save() {
 
-        if (!isOpen()) return;
+        if (!isOpen()) {
+            System.out.println("Error: No file is currently open.");
+            return;
+        }
 
-        try (FileWriter writer = new FileWriter(currentFile)) {
-
-            writer.write("");
-
-            System.out.println("Successfully saved " + currentFile.getName());
-
+        try (PrintWriter writer = new PrintWriter(new FileWriter(currentFile))) {
+            // Вземаме всички събития и ги записваме във формат: дата,старт,край,име,бележка
+            for (Event e : calendarManager.getAllEvents()) {
+                writer.println(e.getDate() + "," + e.getStartTime() + "," + e.getEndTime() + "," + e.getName() + "," + e.getNote());
+            }
+            System.out.println("Successfully saved to " + currentFile.getName());
         } catch (IOException e) {
-
-            System.out.println("Error saving file");
+            System.out.println("Error: Could not save file.");
         }
     }
 
