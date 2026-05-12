@@ -1,8 +1,10 @@
 package bg.tu_varna.sit.f24621666;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CalendarManager {
     private final List<Event> events = new ArrayList<>();
@@ -164,6 +166,39 @@ public class CalendarManager {
 
     public Set<LocalDate> getAllHolidays() {
         return holidays;
+    }
+
+    public void showBusyDays(LocalDate from, LocalDate to) {
+        Map<LocalDate, Long> busyHoursMap = new HashMap<>();
+
+        // Обхождаме всички събития
+        for (Event e : events) {
+            // Проверяваме дали събитието е в периода [from, to]
+            if ((e.getDate().isEqual(from) || e.getDate().isAfter(from)) &&
+                    (e.getDate().isEqual(to) || e.getDate().isBefore(to))) {
+
+                // Пресмятаме продължителността в минути
+                long minutes = Duration.between(e.getStartTime(), e.getEndTime()).toMinutes();
+                busyHoursMap.put(e.getDate(), busyHoursMap.getOrDefault(e.getDate(), 0L) + minutes);
+            }
+        }
+
+        if (busyHoursMap.isEmpty()) {
+            System.out.println("No events found in this period.");
+            return;
+        }
+
+        // Сортираме по брой заети минути (в низходящ ред)
+        List<Map.Entry<LocalDate, Long>> sortedDays = busyHoursMap.entrySet().stream()
+                .sorted(Map.Entry.<LocalDate, Long>comparingByValue().reversed())
+                .collect(Collectors.toList());
+
+        System.out.println("Busy days from " + from + " to " + to + " (sorted by load):");
+        for (Map.Entry<LocalDate, Long> entry : sortedDays) {
+            long hours = entry.getValue() / 60;
+            long mins = entry.getValue() % 60;
+            System.out.println(entry.getKey() + " (" + entry.getKey().getDayOfWeek() + "): " + hours + "h " + mins + "m occupied");
+        }
     }
 
     public void loadEventFromLine(String line) {
