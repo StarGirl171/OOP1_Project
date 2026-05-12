@@ -10,8 +10,10 @@ public class CalendarManager {
     private final List<Event> events = new ArrayList<>();
 
     public void addEvent(Event event) {
-        events.add(event);
-        System.out.println("Event added successfully.");
+        if (isSlotFree(event.getDate(), event.getStartTime(), event.getEndTime())) {
+            events.add(event);
+            System.out.println("Event added successfully.");
+        }
     }
 
     // Метод за изтриване на събитие
@@ -90,13 +92,38 @@ public class CalendarManager {
                     return;
             }
 
-            Event updatedEvent = new Event(newDate, newStart, newEnd, newName, newNote);
-            events.add(updatedEvent);
-            System.out.println("Event updated successfully.");
+            if (isSlotFree(newDate, newStart, newEnd)) {
+                Event updatedEvent = new Event(newDate, newStart, newEnd, newName, newNote);
+                events.add(updatedEvent);
+                System.out.println("Event updated successfully.");
+            } else {
+                // Ако мястото е заето, връщаме оригиналното събитие
+                events.add(foundEvent);
+            }
         } catch (Exception e) {
             System.out.println("Error: Could not update event. Check your input format.");
             events.add(foundEvent); // Връщаме оригиналното събитие при грешка
         }
+    }
+
+    private boolean isSlotFree(LocalDate date, LocalTime start, LocalTime end) {
+        // Валидация на самия интервал
+        if (start.isAfter(end) || start.equals(end)) {
+            System.out.println("Error: Start time must be before end time.");
+            return false;
+        }
+
+        for (Event e : events) {
+            if (e.getDate().equals(date)) {
+                // Проверка за застъпване:
+                // (StartA < EndB) AND (EndA > StartB)
+                if (start.isBefore(e.getEndTime()) && end.isAfter(e.getStartTime())) {
+                    System.out.println("Error: The slot " + start + "-" + end + " on " + date + " is already occupied by: " + e.getName());
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public void findEvents(String search) {
