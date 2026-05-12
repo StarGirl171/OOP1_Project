@@ -103,8 +103,7 @@ public class CalendarManager {
             }
 
             if (isSlotFree(newDate, newStart, newEnd)) {
-                Event updatedEvent = new Event(newDate, newStart, newEnd, newName, newNote);
-                events.add(updatedEvent);
+                events.add(new Event(newDate, newStart, newEnd, newName, newNote));
                 System.out.println("Event updated successfully.");
             } else {
                 // Ако мястото е заето, връщаме оригиналното събитие
@@ -149,12 +148,13 @@ public class CalendarManager {
                     LocalTime end = start.plusHours(hours);
 
                     // Проверка в текущия календар
-                    boolean freeLocally = isSlotFreeForFindSlot(current, start, end);
+                    boolean freeLocally = isSlotFree(current, start, end);
 
                     // Проверка във ВСИЧКИ външни календари
                     boolean freeExternally = true;
+
                     for (List<Event> externalList : allExternalEvents) {
-                        if (!isSlotFreeInList(current, start, end, externalList)) {
+                        if (!isSlotFree(current, start, end, externalList)) {
                             freeExternally = false;
                             break;
                         }
@@ -172,25 +172,113 @@ public class CalendarManager {
         System.out.println("No synchronized free slots found.");
     }
 
-    private boolean isSlotFreeInList(LocalDate date, LocalTime start, LocalTime end, List<Event> list) {
-        for (Event e : list) {
-            if (e.getDate().equals(date)) {
-                if (start.isBefore(e.getEndTime()) && end.isAfter(e.getStartTime())) return false;
-            }
+    // Проверява дали слотът е свободен в КОНКРЕТЕН списък (твоя или чужд)
+    public boolean isSlotFree(LocalDate date, LocalTime start, LocalTime end, List<Event> listToSearch) {
+        if (start.isAfter(end) || start.equals(end)) {
+            return false;
         }
-        return true;
-    }
 
-    // Помощен метод за findSlot
-    private boolean isSlotFreeForFindSlot(LocalDate date, LocalTime start, LocalTime end) {
-        for (Event e : events) {
+        for (Event e : listToSearch) {
             if (e.getDate().equals(date)) {
+                // Стандартна проверка за застъпване
                 if (start.isBefore(e.getEndTime()) && end.isAfter(e.getStartTime())) {
                     return false;
                 }
             }
         }
         return true;
+    }
+
+    public void findSlot(LocalDate fromDate, int hours) {
+        LocalDate current = fromDate;
+        int daysChecked = 0;
+
+        // Търсим в рамките на следващите 30 дни, за да не въртим безкраен цикъл
+        while (daysChecked < 30) {
+            // Проверяваме дали денят е работен
+            if (current.getDayOfWeek() != DayOfWeek.SATURDAY &&
+                    current.getDayOfWeek() != DayOfWeek.SUNDAY &&
+                    !holidays.contains(current)) {
+
+                // Проверяваме всеки кръгъл час от 08:00 до (17 - hours)
+                for (int h = 8; h <= 17 - hours; h++) {
+                    LocalTime start = LocalTime.of(h, 0);
+                    LocalTime end = start.plusHours(hours);
+
+                    if (isSlotFree(current, start, end)) {
+                        System.out.println("Suggested slot: " + current + " from " + start + " to " + end);
+                        return; // Намерихме първия свободен и спираме
+                    }
+                }
+            }
+            current = current.plusDays(1);
+            daysChecked++;
+        }
+        System.out.println("No free slots found in the next 30 days.");
+    }
+
+    public void mergeWithCalendars(List<String> filePaths) {
+        Scanner scanner = new Scanner(System.in);
+
+        for (String path : filePaths) {
+            System.out.println("Merging with: " + path);
+            List<Event> externalEvents = loadEventsFromFile(path);
+
+            for (Event other : externalEvents) {
+                // Търсим дали има конфликт с текущите ни събития
+                Event conflict = findConflictingEvent(other);
+
+                if (conflict == null) {
+                    // Няма конфликт, добавяме го директно
+                    events.add(other);
+                } else {
+                    // Има конфликт - потребителят избира
+                    System.out.println("\nCONFLICT found for date " + other.getDate());
+                    System.out.println("Existing: " + conflict);
+                    System.out.println("New from file: " + other);
+                    System.out.print("Choose: [1] Keep Existing, [2] Replace with New, [3] Move New to other time: ");
+
+                    String choice = scanner.nextLine();
+                    switch (choice) {
+                        case "1":
+                            // Нищо не правим, остава старото
+                            break;
+                        case "2":
+                            events.remove(conflict);
+                            events.add(other);
+                            System.out.println("Event replaced.");
+                            break;
+                        case "3":
+                            System.out.println("Enter new start and end time (HH:mm HH:mm):");
+                            String[] times = scanner.nextLine().split(" ");
+                            try {
+                                LocalTime newS = LocalTime.parse(times[0]);
+                                LocalTime newE = LocalTime.parse(times[1]);
+                                if (isSlotFree(other.getDate(), newS, newE)) {
+                                    events.add(new Event(other.getDate(), newS, newE, other.getName(), other.getNote()));
+                                    System.out.println("Moved and added.");
+                                }
+                            } catch (Exception e) {
+                                System.out.println("Invalid input. Skipping event.");
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+        System.out.println("Merge process completed.");
+    }
+
+    // Помощен метод за намиране на конкретно застъпващо се събитие
+    private Event findConflictingEvent(Event other) {
+        for (Event e : events) {
+            if (e.getDate().equals(other.getDate())) {
+                if (other.getStartTime().isBefore(e.getEndTime()) && other.getEndTime().isAfter(e.getStartTime())) {
+                    return e;
+                }
+            }
+        }
+        return null;
     }
 
     public void findEvents(String search) {
@@ -272,16 +360,12 @@ public class CalendarManager {
             String[] p = line.split(",");
             String type = p[0]; // Първият елемент ни казва типа (E за Event, H за Holiday)
 
-            if (type.equals("E") && p.length == 6) {
-                Event e = new Event(
-                        java.time.LocalDate.parse(p[0]),
-                        java.time.LocalTime.parse(p[1]),
-                        java.time.LocalTime.parse(p[2]),
-                        p[3],
-                        p[4]
-                );
-                events.add(e);
-            } else if (type.equals("H") && p.length == 2) {
+            if (type.equalsIgnoreCase("E") && p.length == 6) {
+                events.add(new Event(
+                        LocalDate.parse(p[1]), LocalTime.parse(p[2]),
+                        LocalTime.parse(p[3]), p[4], p[5]
+                ));
+            } else if (type.equalsIgnoreCase("H") && p.length == 2) {
                 holidays.add(LocalDate.parse(p[1]));
             }
         } catch (Exception e) {
@@ -296,7 +380,7 @@ public class CalendarManager {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] p = line.split(",");
-                if (p[0].equals("E") && p.length == 6) {
+                if (p[0].equalsIgnoreCase("E") && p.length == 6) {
                     externalEvents.add(new Event(
                             LocalDate.parse(p[1]), LocalTime.parse(p[2]),
                             LocalTime.parse(p[3]), p[4], p[5]

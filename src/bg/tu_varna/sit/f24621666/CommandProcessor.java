@@ -20,7 +20,7 @@ public class CommandProcessor {
         registerCommand(new HolidayCommand(fileManager, calendarManager));
         registerCommand(new BusyDaysCommand(fileManager, calendarManager));
         registerCommand(new FindSlotWithCommand(fileManager, calendarManager));
-
+        registerCommand(new MergeCommand(fileManager, calendarManager));
 
         // HelpCommand има нужда от списъка с всички команди, за да ги показва
         registerCommand(new HelpCommand(commands.values()));

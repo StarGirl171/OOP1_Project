@@ -82,7 +82,10 @@ public class FileManager {
     }
 
     public void saveAs(String path) {
-        if (isOpen) return;
+        if (!isOpen) {
+            System.out.println("Error: Open a file first.");
+            return;
+        }
 
         try {
             File newFile = new File(path);
@@ -92,6 +95,7 @@ public class FileManager {
             writer.close();
 
             currentFile = newFile;
+            save();
 
             System.out.println("Successfully saved " + newFile.getName());
 
