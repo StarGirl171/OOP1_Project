@@ -1,5 +1,6 @@
 package bg.tu_varna.sit.f24621666;
 
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -126,6 +127,46 @@ public class CalendarManager {
                 // (StartA < EndB) AND (EndA > StartB)
                 if (start.isBefore(e.getEndTime()) && end.isAfter(e.getStartTime())) {
                     System.out.println("Error: The slot " + start + "-" + end + " on " + date + " is already occupied by: " + e.getName());
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public void findSlot(LocalDate fromDate, int hours) {
+        LocalDate current = fromDate;
+        int daysChecked = 0;
+
+        // Търсим в рамките на следващите 30 дни, за да не въртим безкраен цикъл
+        while (daysChecked < 30) {
+            // Проверяваме дали денят е работен
+            if (current.getDayOfWeek() != DayOfWeek.SATURDAY &&
+                    current.getDayOfWeek() != DayOfWeek.SUNDAY &&
+                    !holidays.contains(current)) {
+
+                // Проверяваме всеки кръгъл час от 08:00 до (17 - hours)
+                for (int h = 8; h <= 17 - hours; h++) {
+                    LocalTime start = LocalTime.of(h, 0);
+                    LocalTime end = start.plusHours(hours);
+
+                    if (isSlotFreeForFindSlot(current, start, end)) {
+                        System.out.println("Suggested slot: " + current + " from " + start + " to " + end);
+                        return; // Намерихме първия свободен и спираме
+                    }
+                }
+            }
+            current = current.plusDays(1);
+            daysChecked++;
+        }
+        System.out.println("No free slots found in the next 30 days.");
+    }
+
+    // Помощен метод за findSlot
+    private boolean isSlotFreeForFindSlot(LocalDate date, LocalTime start, LocalTime end) {
+        for (Event e : events) {
+            if (e.getDate().equals(date)) {
+                if (start.isBefore(e.getEndTime()) && end.isAfter(e.getStartTime())) {
                     return false;
                 }
             }

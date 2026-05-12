@@ -21,6 +21,7 @@ public class CommandProcessor {
         registerCommand(new FindCommand(fileManager, calendarManager));
         registerCommand(new HolidayCommand(fileManager, calendarManager));
         registerCommand(new BusyDaysCommand(fileManager, calendarManager));
+        registerCommand(new FindSlotCommand(fileManager, calendarManager));
 
 
         // HelpCommand има нужда от списъка с всички команди, за да ги показва
