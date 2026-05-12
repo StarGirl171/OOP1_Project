@@ -45,6 +45,12 @@ public class CalendarManager {
         System.out.println("Agenda for " + date + ":");
         boolean hasEvents = false;
 
+        // Проверяваме дали е празник
+        if (holidays.contains(date)) {
+            System.out.println("[HOLIDAY / NON-WORKING DAY]");
+            hasEvents = true;
+        }
+
         for (Event event : events) {
             if (event.getDate().equals(date)) {
                 System.out.println(event);
@@ -52,7 +58,7 @@ public class CalendarManager {
             }
         }
         if (!hasEvents) {
-            System.out.println("No events scheduled for this day.");
+            System.out.println("No events or holidays scheduled for this day.");
         }
     }
 

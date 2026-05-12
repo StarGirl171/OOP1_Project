@@ -20,6 +20,8 @@ public class CommandProcessor {
         registerCommand(new ChangeCommand(fileManager, calendarManager));
         registerCommand(new FindCommand(fileManager, calendarManager));
         registerCommand(new HolidayCommand(fileManager, calendarManager));
+        registerCommand(new BusyDaysCommand(fileManager, calendarManager));
+
 
         // HelpCommand има нужда от списъка с всички команди, за да ги показва
         registerCommand(new HelpCommand(commands.values()));
