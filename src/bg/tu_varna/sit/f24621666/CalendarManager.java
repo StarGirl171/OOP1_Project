@@ -2,12 +2,11 @@ package bg.tu_varna.sit.f24621666;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class CalendarManager {
     private final List<Event> events = new ArrayList<>();
+    private final Set<LocalDate> holidays = new HashSet<>();
 
     public void addEvent(Event event) {
         if (isSlotFree(event.getDate(), event.getStartTime(), event.getEndTime())) {
@@ -147,6 +146,20 @@ public class CalendarManager {
 
     public List<Event> getAllEvents() {
         return events;
+    }
+
+    public void addHoliday(LocalDate date) {
+        if (holidays.contains(date)) {
+            System.out.println("Error: " + date + " is already marked as a holiday.");
+            return;
+        }
+        holidays.add(date);
+        System.out.println("Date " + date + " is now marked as a holiday.");
+    }
+
+    // Помощен метод
+    public boolean isHoliday(LocalDate date) {
+        return holidays.contains(date);
     }
 
     public void loadEventFromLine(String line) {
