@@ -1,6 +1,7 @@
 package bg.tu_varna.sit.f24621666;
 
 import java.io.*;
+import java.time.LocalDate;
 
 public class FileManager {
 
@@ -22,8 +23,12 @@ public class FileManager {
 
             if (!currentFile.exists()) {
                 currentFile.createNewFile();
-                System.out.println("Created new empty file:" + currentFile.getName());
+                System.out.println("Created new empty file:" + path);
             } else {
+                // Преди да заредим нови данни, чистим старите от паметта
+                calendarManager.clearEvents();
+                calendarManager.getAllHolidays().clear();
+
                 // Четем съществуващите данни
                 try (BufferedReader reader = new BufferedReader(new FileReader(currentFile))) {
                     String line;
@@ -62,9 +67,13 @@ public class FileManager {
         }
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(currentFile))) {
-            // Вземаме всички събития и ги записваме във формат: дата,старт,край,име,бележка
+            // Записваме събитията с префикс "E"
             for (Event e : calendarManager.getAllEvents()) {
-                writer.println(e.getDate() + "," + e.getStartTime() + "," + e.getEndTime() + "," + e.getName() + "," + e.getNote());
+                writer.println("E," + e.getDate() + "," + e.getStartTime() + "," + e.getEndTime() + "," + e.getName() + "," + e.getNote());
+            }
+            // Записваме празниците с префикс "H"
+            for (LocalDate date : calendarManager.getAllHolidays()) {
+                writer.println("H," + date);
             }
             System.out.println("Successfully saved to " + currentFile.getName());
         } catch (IOException e) {

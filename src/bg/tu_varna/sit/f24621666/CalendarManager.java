@@ -162,10 +162,16 @@ public class CalendarManager {
         return holidays.contains(date);
     }
 
+    public Set<LocalDate> getAllHolidays() {
+        return holidays;
+    }
+
     public void loadEventFromLine(String line) {
         try {
             String[] p = line.split(",");
-            if (p.length == 5) {
+            String type = p[0]; // Първият елемент ни казва типа (E за Event, H за Holiday)
+
+            if (type.equals("E") && p.length == 6) {
                 Event e = new Event(
                         java.time.LocalDate.parse(p[0]),
                         java.time.LocalTime.parse(p[1]),
@@ -174,6 +180,8 @@ public class CalendarManager {
                         p[4]
                 );
                 events.add(e);
+            } else if (type.equals("H") && p.length == 2) {
+                holidays.add(LocalDate.parse(p[1]));
             }
         } catch (Exception e) {
             // Пропускаме невалидни редове
