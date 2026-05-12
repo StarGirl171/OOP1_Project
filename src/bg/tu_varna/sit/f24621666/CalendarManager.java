@@ -1,5 +1,7 @@
 package bg.tu_varna.sit.f24621666;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -134,32 +136,49 @@ public class CalendarManager {
         return true;
     }
 
-    public void findSlot(LocalDate fromDate, int hours) {
+    public void findSlotWith(LocalDate fromDate, int hours, List<List<Event>> allExternalEvents) {
         LocalDate current = fromDate;
         int daysChecked = 0;
 
-        // Търсим в рамките на следващите 30 дни, за да не въртим безкраен цикъл
         while (daysChecked < 30) {
-            // Проверяваме дали денят е работен
             if (current.getDayOfWeek() != DayOfWeek.SATURDAY &&
-                    current.getDayOfWeek() != DayOfWeek.SUNDAY &&
-                    !holidays.contains(current)) {
+                    current.getDayOfWeek() != DayOfWeek.SUNDAY && !holidays.contains(current)) {
 
-                // Проверяваме всеки кръгъл час от 08:00 до (17 - hours)
                 for (int h = 8; h <= 17 - hours; h++) {
                     LocalTime start = LocalTime.of(h, 0);
                     LocalTime end = start.plusHours(hours);
 
-                    if (isSlotFreeForFindSlot(current, start, end)) {
-                        System.out.println("Suggested slot: " + current + " from " + start + " to " + end);
-                        return; // Намерихме първия свободен и спираме
+                    // Проверка в текущия календар
+                    boolean freeLocally = isSlotFreeForFindSlot(current, start, end);
+
+                    // Проверка във ВСИЧКИ външни календари
+                    boolean freeExternally = true;
+                    for (List<Event> externalList : allExternalEvents) {
+                        if (!isSlotFreeInList(current, start, end, externalList)) {
+                            freeExternally = false;
+                            break;
+                        }
+                    }
+
+                    if (freeLocally && freeExternally) {
+                        System.out.println("Suggested synchronized slot: " + current + " from " + start + " to " + end);
+                        return;
                     }
                 }
             }
             current = current.plusDays(1);
             daysChecked++;
         }
-        System.out.println("No free slots found in the next 30 days.");
+        System.out.println("No synchronized free slots found.");
+    }
+
+    private boolean isSlotFreeInList(LocalDate date, LocalTime start, LocalTime end, List<Event> list) {
+        for (Event e : list) {
+            if (e.getDate().equals(date)) {
+                if (start.isBefore(e.getEndTime()) && end.isAfter(e.getStartTime())) return false;
+            }
+        }
+        return true;
     }
 
     // Помощен метод за findSlot
@@ -268,6 +287,26 @@ public class CalendarManager {
         } catch (Exception e) {
             // Пропускаме невалидни редове
         }
+    }
+
+    // Помощен метод, който зарежда събития от ВЪНШЕН файл, без да променя текущите
+    public List<Event> loadEventsFromFile(String filePath) {
+        List<Event> externalEvents = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] p = line.split(",");
+                if (p[0].equals("E") && p.length == 6) {
+                    externalEvents.add(new Event(
+                            LocalDate.parse(p[1]), LocalTime.parse(p[2]),
+                            LocalTime.parse(p[3]), p[4], p[5]
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error reading external calendar: " + filePath);
+        }
+        return externalEvents;
     }
 
     public void clearEvents() {

@@ -1,7 +1,5 @@
 package bg.tu_varna.sit.f24621666;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.TreeMap;
 
 public class CommandProcessor {
@@ -21,7 +19,7 @@ public class CommandProcessor {
         registerCommand(new FindCommand(fileManager, calendarManager));
         registerCommand(new HolidayCommand(fileManager, calendarManager));
         registerCommand(new BusyDaysCommand(fileManager, calendarManager));
-        registerCommand(new FindSlotCommand(fileManager, calendarManager));
+        registerCommand(new FindSlotWithCommand(fileManager, calendarManager));
 
 
         // HelpCommand има нужда от списъка с всички команди, за да ги показва
