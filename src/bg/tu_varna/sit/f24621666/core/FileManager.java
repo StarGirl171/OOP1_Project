@@ -1,4 +1,4 @@
-package bg.tu_varna.sit.f24621666;
+package bg.tu_varna.sit.f24621666.core;
 
 import java.io.*;
 import java.time.LocalDate;
@@ -27,8 +27,7 @@ public class FileManager {
             currentFile = new File(path);
             calendarManager.clearEvents();
 
-            if (!currentFile.exists()) {
-                currentFile.createNewFile();
+            if (currentFile.createNewFile()) {
                 System.out.println("Created new empty file: " + path);
             } else {
                 try (BufferedReader reader = new BufferedReader(new FileReader(currentFile))) {
@@ -40,7 +39,7 @@ public class FileManager {
             }
             isOpen = true;
             hasUnsavedChanges = false;
-            System.out.println("Successfully opened " + currentFile.getName());
+            System.out.println("Successfully opened " + path);
         } catch (IOException e) {
             System.out.println("Error: Operation failed.");
         }

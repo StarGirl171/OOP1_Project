@@ -1,10 +1,13 @@
-package bg.tu_varna.sit.f24621666;
+package bg.tu_varna.sit.f24621666.commands;
+
+import bg.tu_varna.sit.f24621666.core.CalendarManager;
+import bg.tu_varna.sit.f24621666.core.Event;
+import bg.tu_varna.sit.f24621666.core.FileManager;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class BookCommand extends AbstractCommand {
-
     public BookCommand(FileManager fm, CalendarManager cm) { super(fm, cm); }
 
     @Override

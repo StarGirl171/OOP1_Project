@@ -1,4 +1,7 @@
-package bg.tu_varna.sit.f24621666;
+package bg.tu_varna.sit.f24621666.commands;
+
+import bg.tu_varna.sit.f24621666.core.CalendarManager;
+import bg.tu_varna.sit.f24621666.core.FileManager;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -8,7 +11,7 @@ public class ChangeCommand extends AbstractCommand {
 
     @Override
     protected int getMinArgs() { return 5; }
-    
+
     @Override
     protected String getUsage() { return "Usage: change <date> <start> <end> <option> <newvalue>"; }
 

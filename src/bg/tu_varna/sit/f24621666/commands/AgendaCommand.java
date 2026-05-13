@@ -1,4 +1,7 @@
-package bg.tu_varna.sit.f24621666;
+package bg.tu_varna.sit.f24621666.commands;
+
+import bg.tu_varna.sit.f24621666.core.CalendarManager;
+import bg.tu_varna.sit.f24621666.core.FileManager;
 
 import java.time.LocalDate;
 
@@ -6,6 +9,9 @@ public class AgendaCommand extends AbstractCommand {
     public AgendaCommand(FileManager fileManager, CalendarManager calendarManager) {
         super(fileManager, calendarManager);
     }
+
+    @Override
+    protected int getMinArgs() { return 1; }
 
     @Override
     protected void executeLogic(String[] args) {

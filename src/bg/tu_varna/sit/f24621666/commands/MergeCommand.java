@@ -1,10 +1,12 @@
-package bg.tu_varna.sit.f24621666;
+package bg.tu_varna.sit.f24621666.commands;
+
+import bg.tu_varna.sit.f24621666.core.CalendarManager;
+import bg.tu_varna.sit.f24621666.core.FileManager;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class MergeCommand extends AbstractCommand {
-
     public MergeCommand(FileManager fm, CalendarManager cm) { super(fm, cm); }
 
     @Override

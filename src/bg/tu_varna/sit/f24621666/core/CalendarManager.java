@@ -1,4 +1,4 @@
-package bg.tu_varna.sit.f24621666;
+package bg.tu_varna.sit.f24621666.core;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -7,7 +7,6 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class CalendarManager {
     private final List<Event> events = new ArrayList<>();
@@ -66,7 +65,7 @@ public class CalendarManager {
         boolean hasEvents = false;
 
         // Проверяваме дали е празник
-        if (holidays.contains(date)) {
+        if (isHoliday(date)) {
             System.out.println("[HOLIDAY / NON-WORKING DAY]");
             hasEvents = true;
         }
@@ -132,7 +131,7 @@ public class CalendarManager {
     private boolean isDayWorkable(LocalDate date) {
         return date.getDayOfWeek() != DayOfWeek.SATURDAY &&
                 date.getDayOfWeek() != DayOfWeek.SUNDAY &&
-                !holidays.contains(date);
+                !isHoliday(date);
     }
 
     private boolean isSlotFree(LocalDate date, LocalTime start, LocalTime end) {
@@ -199,54 +198,61 @@ public class CalendarManager {
     }
 
     public void mergeWithCalendars(List<String> filePaths, Scanner scanner) {
-
         for (String path : filePaths) {
             System.out.println("Merging with: " + path);
             List<Event> externalEvents = loadEventsFromFile(path);
 
             for (Event other : externalEvents) {
-                // Търсим дали има конфликт с текущите ни събития
                 Event conflict = findConflictingEvent(other);
 
                 if (conflict == null) {
-                    // Няма конфликт, добавяме го директно
                     events.add(other);
                 } else {
-                    // Има конфликт - потребителят избира
-                    System.out.println("\nCONFLICT found for date " + other.getDate());
-                    System.out.println("Existing: " + conflict);
-                    System.out.println("New from file: " + other);
-                    System.out.print("Choose: [1] Keep Existing, [2] Replace with New, [3] Move New to other time: ");
-
-                    String choice = scanner.nextLine();
-                    switch (choice) {
-                        case "1":
-                            // Нищо не правим, остава старото
-                            break;
-                        case "2":
-                            events.remove(conflict);
-                            events.add(other);
-                            System.out.println("Event replaced.");
-                            break;
-                        case "3":
-                            System.out.println("Enter new start and end time (HH:mm HH:mm):");
-                            String[] times = scanner.nextLine().split(" ");
-                            try {
-                                LocalTime newS = LocalTime.parse(times[0]);
-                                LocalTime newE = LocalTime.parse(times[1]);
-                                if (isSlotFree(other.getDate(), newS, newE)) {
-                                    events.add(new Event(other.getDate(), newS, newE, other.getName(), other.getNote()));
-                                    System.out.println("Moved and added.");
-                                }
-                            } catch (Exception e) {
-                                System.out.println("Invalid input. Skipping event.");
-                            }
-                            break;
-                    }
+                    handleConflict(conflict, other, scanner);
                 }
             }
         }
         System.out.println("Merge process completed.");
+    }
+
+    private void handleConflict(Event existing, Event other, Scanner scanner) {
+        System.out.println("\nCONFLICT found for date " + other.getDate());
+        System.out.println("Existing: " + existing);
+        System.out.println("New from file: " + other);
+        System.out.print("Choose: [1] Keep Existing, [2] Replace with New, [3] Move New to other time: ");
+
+        String choice = scanner.nextLine();
+        switch (choice) {
+            case "2":
+                events.remove(existing);
+                events.add(other);
+                System.out.println("Event replaced.");
+                break;
+            case "3":
+                moveEventToNewTime(other, scanner);
+                break;
+            default:
+                System.out.println("Keeping existing event.");
+                break;
+        }
+    }
+
+    private void moveEventToNewTime(Event event, Scanner scanner) {
+        System.out.println("Enter new start and end time (HH:mm HH:mm):");
+        try {
+            String[] times = scanner.nextLine().split(" ");
+            LocalTime newS = LocalTime.parse(times[0]);
+            LocalTime newE = LocalTime.parse(times[1]);
+
+            if (isSlotFree(event.getDate(), newS, newE)) {
+                events.add(new Event(event.getDate(), newS, newE, event.getName(), event.getNote()));
+                System.out.println("Moved and added.");
+            } else {
+                System.out.println("Error: New slot is occupied.");
+            }
+        } catch (Exception e) {
+            System.out.println("Invalid input. Skipping event.");
+        }
     }
 
     // Помощен метод за намиране на конкретно застъпващо се събитие
@@ -288,7 +294,6 @@ public class CalendarManager {
         }
     }
 
-    // Помощен метод
     public boolean isHoliday(LocalDate date) {
         return holidays.contains(date);
     }
@@ -310,7 +315,6 @@ public class CalendarManager {
 
         if (busyHoursMap.isEmpty()) {
             System.out.println("No events found in this period.");
-            return;
         } else {
             busyHoursMap.entrySet().stream()
                     .sorted(Map.Entry.<LocalDate, Long>comparingByValue().reversed())
@@ -318,7 +322,7 @@ public class CalendarManager {
         }
     }
 
-    private void loadEventFromLine(String line) {
+    void loadEventFromLine(String line) {
         try {
             String[] p = line.split(",");
 

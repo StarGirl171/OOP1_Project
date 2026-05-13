@@ -1,4 +1,6 @@
-package bg.tu_varna.sit.f24621666;
+package bg.tu_varna.sit.f24621666.core;
+
+import bg.tu_varna.sit.f24621666.commands.*;
 
 import java.util.TreeMap;
 
@@ -20,10 +22,12 @@ public class CommandProcessor {
         registerCommand(new HolidayCommand(fileManager, calendarManager));
         registerCommand(new BusyDaysCommand(fileManager, calendarManager));
         registerCommand(new FindSlotWithCommand(fileManager, calendarManager));
+        registerCommand(new FindSlotCommand(fileManager, calendarManager));
         registerCommand(new MergeCommand(fileManager, calendarManager));
 
         // Подаваме колекцията от команди на HelpCommand
-        registerCommand(new HelpCommand(fileManager, calendarManager, commands.values()));
+        HelpCommand help = new HelpCommand(fileManager, calendarManager, commands.values());
+        registerCommand(help);
     }
 
     private void registerCommand(Command command) {

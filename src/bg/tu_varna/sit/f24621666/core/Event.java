@@ -1,4 +1,4 @@
-package bg.tu_varna.sit.f24621666;
+package bg.tu_varna.sit.f24621666.core;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
