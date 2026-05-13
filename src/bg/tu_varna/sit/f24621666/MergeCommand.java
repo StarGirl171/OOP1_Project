@@ -2,6 +2,7 @@ package bg.tu_varna.sit.f24621666;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class MergeCommand implements Command {
     private final FileManager fileManager;
@@ -24,9 +25,12 @@ public class MergeCommand implements Command {
         }
 
         List<String> paths = new ArrayList<>();
-        for (String arg : args) paths.add(arg);
+        for (String arg : args) {
+            paths.add(arg);
+        }
 
-        calendarManager.mergeWithCalendars(paths);
+        Scanner scanner = new Scanner(System.in);
+        calendarManager.mergeWithCalendars(paths, scanner);
     }
 
     @Override

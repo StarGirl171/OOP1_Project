@@ -13,10 +13,20 @@ public class CalendarManager {
     private final List<Event> events = new ArrayList<>();
     private final Set<LocalDate> holidays = new HashSet<>();
 
+    public List<Event> getAllEvents() {
+        return new ArrayList<>(events);
+    }
+
+    public Set<LocalDate> getAllHolidays() {
+        return new HashSet<>(holidays);
+    }
+
     public void addEvent(Event event) {
         if (isSlotFree(event.getDate(), event.getStartTime(), event.getEndTime())) {
             events.add(event);
             System.out.println("Event added successfully.");
+        } else {
+            System.out.println("Error: The slot is already occupied or invalid.");
         }
     }
 
@@ -66,110 +76,60 @@ public class CalendarManager {
     }
 
     public void changeEvent(LocalDate date, LocalTime start, LocalTime end, String option, String newValue) {
-        Event foundEvent = null;
-        for (Event e : events) {
-            if (e.getDate().equals(date) && e.getStartTime().equals(start) && e.getEndTime().equals(end)) {
-                foundEvent = e;
-                break;
-            }
-        }
-
-        if (foundEvent == null) {
+        Event found = findEvent(date, start, end);
+        if (found == null) {
             System.out.println("Error: Event not found.");
             return;
         }
 
-        // Премахваме старото
-        events.remove(foundEvent);
+        events.remove(found);
+        Event updated = createUpdatedEvent(found, option, newValue);
 
-        // Подготвяме данните за новото (копираме старите и променяме само избраното)
-        LocalDate newDate = foundEvent.getDate();
-        LocalTime newStart = foundEvent.getStartTime();
-        LocalTime newEnd = foundEvent.getEndTime();
-        String newName = foundEvent.getName();
-        String newNote = foundEvent.getNote();
-
-        try {
-            switch (option.toLowerCase()) {
-                case "date": newDate = LocalDate.parse(newValue); break;
-                case "starttime": newStart = LocalTime.parse(newValue); break;
-                case "endtime": newEnd = LocalTime.parse(newValue); break;
-                case "name": newName = newValue; break;
-                case "note": newNote = newValue; break;
-                default:
-                    System.out.println("Error: Invalid option. Use: date, starttime, endtime, name, note.");
-                    events.add(foundEvent); // Връщаме го обратно, ако опцията е грешна
-                    return;
-            }
-
-            if (isSlotFree(newDate, newStart, newEnd)) {
-                events.add(new Event(newDate, newStart, newEnd, newName, newNote));
-                System.out.println("Event updated successfully.");
-            } else {
-                // Ако мястото е заето, връщаме оригиналното събитие
-                events.add(foundEvent);
-            }
-        } catch (Exception e) {
-            System.out.println("Error: Could not update event. Check your input format.");
-            events.add(foundEvent); // Връщаме оригиналното събитие при грешка
+        if (updated != null && isSlotFree(updated.getDate(), updated.getStartTime(), updated.getEndTime())) {
+            events.add(updated);
+            System.out.println("Event updated successfully.");
+        } else {
+            events.add(found); // Връщаме оригинала при грешка или заето място
+            if (updated != null) System.out.println("Error: New slot is occupied.");
         }
+    }
+
+    private Event findEvent(LocalDate date, LocalTime start, LocalTime end) {
+        return events.stream()
+                .filter(e -> e.getDate().equals(date) && e.getStartTime().equals(start) && e.getEndTime().equals(end))
+                .findFirst().orElse(null);
+    }
+
+    private Event createUpdatedEvent(Event e, String opt, String val) {
+        try {
+            LocalDate d = e.getDate();
+            LocalTime s = e.getStartTime();
+            LocalTime end = e.getEndTime();
+            String name = e.getName();
+            String note = e.getNote();
+
+            switch (opt.toLowerCase()) {
+                case "date": d = LocalDate.parse(val); break;
+                case "starttime": s = LocalTime.parse(val); break;
+                case "endtime": end = LocalTime.parse(val); break;
+                case "name": name = val; break;
+                case "note": note = val; break;
+                default: return null;
+            }
+            return new Event(d, s, end, name, note);
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private boolean isDayWorkable(LocalDate date) {
+        return date.getDayOfWeek() != DayOfWeek.SATURDAY &&
+                date.getDayOfWeek() != DayOfWeek.SUNDAY &&
+                !holidays.contains(date);
     }
 
     private boolean isSlotFree(LocalDate date, LocalTime start, LocalTime end) {
-        // Валидация на самия интервал
-        if (start.isAfter(end) || start.equals(end)) {
-            System.out.println("Error: Start time must be before end time.");
-            return false;
-        }
-
-        for (Event e : events) {
-            if (e.getDate().equals(date)) {
-                // Проверка за застъпване:
-                // (StartA < EndB) AND (EndA > StartB)
-                if (start.isBefore(e.getEndTime()) && end.isAfter(e.getStartTime())) {
-                    System.out.println("Error: The slot " + start + "-" + end + " on " + date + " is already occupied by: " + e.getName());
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    public void findSlotWith(LocalDate fromDate, int hours, List<List<Event>> allExternalEvents) {
-        LocalDate current = fromDate;
-        int daysChecked = 0;
-
-        while (daysChecked < 30) {
-            if (current.getDayOfWeek() != DayOfWeek.SATURDAY &&
-                    current.getDayOfWeek() != DayOfWeek.SUNDAY && !holidays.contains(current)) {
-
-                for (int h = 8; h <= 17 - hours; h++) {
-                    LocalTime start = LocalTime.of(h, 0);
-                    LocalTime end = start.plusHours(hours);
-
-                    // Проверка в текущия календар
-                    boolean freeLocally = isSlotFree(current, start, end);
-
-                    // Проверка във ВСИЧКИ външни календари
-                    boolean freeExternally = true;
-
-                    for (List<Event> externalList : allExternalEvents) {
-                        if (!isSlotFree(current, start, end, externalList)) {
-                            freeExternally = false;
-                            break;
-                        }
-                    }
-
-                    if (freeLocally && freeExternally) {
-                        System.out.println("Suggested synchronized slot: " + current + " from " + start + " to " + end);
-                        return;
-                    }
-                }
-            }
-            current = current.plusDays(1);
-            daysChecked++;
-        }
-        System.out.println("No synchronized free slots found.");
+        return isSlotFree(date, start, end, this.events);
     }
 
     // Проверява дали слотът е свободен в КОНКРЕТЕН списък (твоя или чужд)
@@ -190,35 +150,36 @@ public class CalendarManager {
     }
 
     public void findSlot(LocalDate fromDate, int hours) {
+        findSlotWith(fromDate, hours, new ArrayList<>());
+    }
+
+    public void findSlotWith(LocalDate fromDate, int hours, List<List<Event>> allExternalEvents) {
         LocalDate current = fromDate;
-        int daysChecked = 0;
-
-        // Търсим в рамките на следващите 30 дни, за да не въртим безкраен цикъл
-        while (daysChecked < 30) {
-            // Проверяваме дали денят е работен
-            if (current.getDayOfWeek() != DayOfWeek.SATURDAY &&
-                    current.getDayOfWeek() != DayOfWeek.SUNDAY &&
-                    !holidays.contains(current)) {
-
-                // Проверяваме всеки кръгъл час от 08:00 до (17 - hours)
+        for (int d = 0; d < 30; d++) {
+            if (isDayWorkable(current)) {
                 for (int h = 8; h <= 17 - hours; h++) {
                     LocalTime start = LocalTime.of(h, 0);
                     LocalTime end = start.plusHours(hours);
 
-                    if (isSlotFree(current, start, end)) {
+                    if (isSlotFree(current, start, end) && isFreeInAllExternal(current, start, end, allExternalEvents)) {
                         System.out.println("Suggested slot: " + current + " from " + start + " to " + end);
-                        return; // Намерихме първия свободен и спираме
+                        return;
                     }
                 }
             }
             current = current.plusDays(1);
-            daysChecked++;
         }
-        System.out.println("No free slots found in the next 30 days.");
+        System.out.println("No free slots found.");
     }
 
-    public void mergeWithCalendars(List<String> filePaths) {
-        Scanner scanner = new Scanner(System.in);
+    private boolean isFreeInAllExternal(LocalDate date, LocalTime s, LocalTime e, List<List<Event>> external) {
+        for (List<Event> list : external) {
+            if (!isSlotFree(date, s, e, list)) return false;
+        }
+        return true;
+    }
+
+    public void mergeWithCalendars(List<String> filePaths, Scanner scanner) {
 
         for (String path : filePaths) {
             System.out.println("Merging with: " + path);
@@ -300,26 +261,17 @@ public class CalendarManager {
         }
     }
 
-    public List<Event> getAllEvents() {
-        return events;
-    }
-
     public void addHoliday(LocalDate date) {
-        if (holidays.contains(date)) {
+        if (!holidays.add(date)) {
             System.out.println("Error: " + date + " is already marked as a holiday.");
-            return;
+        } else {
+            System.out.println("Date " + date + " is now marked as a holiday.");
         }
-        holidays.add(date);
-        System.out.println("Date " + date + " is now marked as a holiday.");
     }
 
     // Помощен метод
     public boolean isHoliday(LocalDate date) {
         return holidays.contains(date);
-    }
-
-    public Set<LocalDate> getAllHolidays() {
-        return holidays;
     }
 
     public void showBusyDays(LocalDate from, LocalDate to) {
@@ -340,32 +292,24 @@ public class CalendarManager {
         if (busyHoursMap.isEmpty()) {
             System.out.println("No events found in this period.");
             return;
-        }
-
-        // Сортираме по брой заети минути (в низходящ ред)
-        List<Map.Entry<LocalDate, Long>> sortedDays = busyHoursMap.entrySet().stream()
-                .sorted(Map.Entry.<LocalDate, Long>comparingByValue().reversed())
-                .collect(Collectors.toList());
-
-        System.out.println("Busy days from " + from + " to " + to + " (sorted by load):");
-        for (Map.Entry<LocalDate, Long> entry : sortedDays) {
-            long hours = entry.getValue() / 60;
-            long mins = entry.getValue() % 60;
-            System.out.println(entry.getKey() + " (" + entry.getKey().getDayOfWeek() + "): " + hours + "h " + mins + "m occupied");
+        } else {
+            busyHoursMap.entrySet().stream()
+                    .sorted(Map.Entry.<LocalDate, Long>comparingByValue().reversed())
+                    .forEach(entry -> System.out.println(entry.getKey() + ": " + (entry.getValue() / 60) + "h " + (entry.getValue() % 60) + "m"));
         }
     }
 
-    public void loadEventFromLine(String line) {
+    private void loadEventFromLine(String line) {
         try {
             String[] p = line.split(",");
-            String type = p[0]; // Първият елемент ни казва типа (E за Event, H за Holiday)
 
-            if (type.equalsIgnoreCase("E") && p.length == 6) {
-                events.add(new Event(
-                        LocalDate.parse(p[1]), LocalTime.parse(p[2]),
-                        LocalTime.parse(p[3]), p[4], p[5]
-                ));
-            } else if (type.equalsIgnoreCase("H") && p.length == 2) {
+            if (p[0].equalsIgnoreCase("E") && p.length == 6) {
+                Event event = parseEvent(p);
+
+                if (event != null) {
+                    events.add(event);
+                }
+            } else if (p[0].equalsIgnoreCase("H") && p.length == 2) {
                 holidays.add(LocalDate.parse(p[1]));
             }
         } catch (Exception e) {
@@ -375,16 +319,18 @@ public class CalendarManager {
 
     // Помощен метод, който зарежда събития от ВЪНШЕН файл, без да променя текущите
     public List<Event> loadEventsFromFile(String filePath) {
+
         List<Event> externalEvents = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+
             String line;
             while ((line = reader.readLine()) != null) {
+
                 String[] p = line.split(",");
                 if (p[0].equalsIgnoreCase("E") && p.length == 6) {
-                    externalEvents.add(new Event(
-                            LocalDate.parse(p[1]), LocalTime.parse(p[2]),
-                            LocalTime.parse(p[3]), p[4], p[5]
-                    ));
+
+                    Event event = parseEvent(p);
+                    if (event != null) externalEvents.add(event);
                 }
             }
         } catch (Exception e) {
@@ -393,7 +339,22 @@ public class CalendarManager {
         return externalEvents;
     }
 
+    private Event parseEvent(String[] p) {
+        try {
+            return new Event(
+                    LocalDate.parse(p[1]),
+                    LocalTime.parse(p[2]),
+                    LocalTime.parse(p[3]),
+                    p[4],
+                    p[5]
+            );
+        } catch (Exception e) {
+            return null; // Връщаме null, ако данните са грешни
+        }
+    }
+
     public void clearEvents() {
         events.clear();
+        holidays.clear();
     }
 }
