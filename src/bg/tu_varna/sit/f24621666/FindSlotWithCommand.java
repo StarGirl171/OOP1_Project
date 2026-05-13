@@ -4,39 +4,33 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FindSlotWithCommand implements Command {
-    private final FileManager fileManager;
-    private final CalendarManager calendarManager;
-
-    public FindSlotWithCommand(FileManager fileManager, CalendarManager calendarManager) {
-        this.fileManager = fileManager;
-        this.calendarManager = calendarManager;
-    }
+public class FindSlotWithCommand extends AbstractCommand {
+    public FindSlotWithCommand(FileManager fm, CalendarManager cm) { super(fm, cm); }
 
     @Override
-    public void execute(String[] args) {
-        if (args.length < 3) {
-            System.out.println("Usage: findslotwith <fromdate> <hours> <calendar1> [calendar2]...");
-            return;
+    protected int getMinArgs() { return 3; }
+
+    @Override
+    protected String getUsage() { return "Usage: findslotwith <fromdate> <hours> <calendar1> [calendar2]..."; }
+
+    @Override
+    protected void executeLogic(String[] args) {
+        LocalDate startDate = LocalDate.parse(args[0]);
+        int hours = Integer.parseInt(args[1]);
+
+        List<List<Event>> externalCalendars = new ArrayList<>();
+        // Обхождаме всички подадени файлове след първите два аргумента
+        for (int i = 2; i < args.length; i++) {
+            List<Event> externalEvents = calendarManager.loadEventsFromFile(args[i]);
+            externalCalendars.add(externalEvents);
         }
 
-        try {
-            LocalDate date = LocalDate.parse(args[0]);
-            int hours = Integer.parseInt(args[1]);
-
-            List<List<Event>> externalCalendars = new ArrayList<>();
-            for (int i = 2; i < args.length; i++) {
-                externalCalendars.add(calendarManager.loadEventsFromFile(args[i]));
-            }
-
-            calendarManager.findSlotWith(date, hours, externalCalendars);
-        } catch (Exception e) {
-            System.out.println("Error: Invalid parameters for findslotwith.");
-        }
+        calendarManager.findSlotWith(startDate, hours, externalCalendars);
     }
 
     @Override
     public String getName() { return "findslotwith"; }
+
     @Override
-    public String getHelp() { return "findslotwith <date> <hours> <calendar> - finds free slot in multiple calendars"; }
+    public String getHelp() { return "findslotwith <date> <hours> <file>... - finds free slot in multiple calendars"; }
 }

@@ -1,32 +1,21 @@
 package bg.tu_varna.sit.f24621666;
 
-public class FindCommand implements Command {
-    private final FileManager fileManager;
-    private final CalendarManager calendarManager;
+public class FindCommand extends AbstractCommand {
 
-    public FindCommand(FileManager fileManager, CalendarManager calendarManager) {
-        this.fileManager = fileManager;
-        this.calendarManager = calendarManager;
-    }
+    public FindCommand(FileManager fm, CalendarManager cm) { super(fm, cm); }
 
     @Override
-    public void execute(String[] args) {
-        if (!fileManager.isOpen()) {
-            System.out.println("Error: Please open a file first.");
-            return;
-        }
+    protected int getMinArgs() { return 1; }
 
-        if (args.length < 1) {
-            System.out.println("Usage: find <string>");
-            return;
-        }
+    @Override
+    protected String getUsage() { return "Usage: find <string>"; }
 
-        calendarManager.findEvents(args[0]);
-    }
+    @Override
+    protected void executeLogic(String[] args) { calendarManager.findEvents(args[0]); }
 
     @Override
     public String getName() { return "find"; }
 
     @Override
-    public String getHelp() { return "find <string> - searches for events containing the string"; }
+    public String getHelp() { return "find <string> - searches for events by string"; }
 }

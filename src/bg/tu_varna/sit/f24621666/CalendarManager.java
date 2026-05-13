@@ -21,12 +21,19 @@ public class CalendarManager {
         return new HashSet<>(holidays);
     }
 
-    public void addEvent(Event event) {
+    public boolean addEvent(Event event) {
+        if (!event.isValid()) {
+            System.out.println("Error: Invalid event time range (start must be before end).");
+            return false;
+        }
+
         if (isSlotFree(event.getDate(), event.getStartTime(), event.getEndTime())) {
             events.add(event);
             System.out.println("Event added successfully.");
+            return true;
         } else {
             System.out.println("Error: The slot is already occupied or invalid.");
+            return false;
         }
     }
 
@@ -129,52 +136,64 @@ public class CalendarManager {
     }
 
     private boolean isSlotFree(LocalDate date, LocalTime start, LocalTime end) {
-        return isSlotFree(date, start, end, this.events);
-    }
-
-    // Проверява дали слотът е свободен в КОНКРЕТЕН списък (твоя или чужд)
-    public boolean isSlotFree(LocalDate date, LocalTime start, LocalTime end, List<Event> listToSearch) {
-        if (start.isAfter(end) || start.equals(end)) {
-            return false;
-        }
-
-        for (Event e : listToSearch) {
-            if (e.getDate().equals(date)) {
-                // Стандартна проверка за застъпване
-                if (start.isBefore(e.getEndTime()) && end.isAfter(e.getStartTime())) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        return isSlotFreeInList(this.events, date, start, end);
     }
 
     public void findSlot(LocalDate fromDate, int hours) {
         findSlotWith(fromDate, hours, new ArrayList<>());
     }
 
-    public void findSlotWith(LocalDate fromDate, int hours, List<List<Event>> allExternalEvents) {
-        LocalDate current = fromDate;
-        for (int d = 0; d < 30; d++) {
-            if (isDayWorkable(current)) {
-                for (int h = 8; h <= 17 - hours; h++) {
-                    LocalTime start = LocalTime.of(h, 0);
-                    LocalTime end = start.plusHours(hours);
+    public void findSlotWith(LocalDate startDate, int durationHours, List<List<Event>> externalCalendars) {
+        LocalDate currentDate = startDate;
+        int daysSearched = 0;
 
-                    if (isSlotFree(current, start, end) && isFreeInAllExternal(current, start, end, allExternalEvents)) {
-                        System.out.println("Suggested slot: " + current + " from " + start + " to " + end);
-                        return;
-                    }
+        // Обединяваме всички събития от всички календари
+        List<Event> allRelevantEvents = new ArrayList<>(this.events);
+        for (List<Event> external : externalCalendars) {
+            allRelevantEvents.addAll(external);
+        }
+
+        while (daysSearched < 365) {
+            if (isDayWorkable(currentDate)) {
+                // ИЗПОЛЗВАМЕ НОВИЯ ПОМОЩЕН МЕТОД ТУК
+                LocalTime foundTime = findFreeHourInDay(currentDate, durationHours, allRelevantEvents);
+
+                if (foundTime != null) {
+                    System.out.println("Found slot: " + currentDate + " from " + foundTime + " to " + foundTime.plusHours(durationHours));
+                    return;
                 }
             }
-            current = current.plusDays(1);
+            currentDate = currentDate.plusDays(1);
+            daysSearched++;
         }
-        System.out.println("No free slots found.");
+        System.out.println("No free slot found for the given duration.");
     }
 
-    private boolean isFreeInAllExternal(LocalDate date, LocalTime s, LocalTime e, List<List<Event>> external) {
-        for (List<Event> list : external) {
-            if (!isSlotFree(date, s, e, list)) return false;
+    private LocalTime findFreeHourInDay(LocalDate date, int duration, List<Event> eventsToCheck) {
+        LocalTime startLimit = LocalTime.of(8, 0);
+        LocalTime endLimit = LocalTime.of(17, 0);
+
+        for (int h = startLimit.getHour(); h <= endLimit.getHour() - duration; h++) {
+            LocalTime potentialStart = LocalTime.of(h, 0);
+            LocalTime potentialEnd = potentialStart.plusHours(duration);
+
+            if (isSlotFreeInList(eventsToCheck, date, potentialStart, potentialEnd)) {
+                return potentialStart; // Връщаме намерения час
+            }
+        }
+        return null; // Нищо не сме намерили в този ден
+    }
+
+    // Помощен метод за проверка на конфликти в списък от събития
+    private boolean isSlotFreeInList(List<Event> eventList, LocalDate date, LocalTime start, LocalTime end) {
+        for (Event e : eventList) {
+            if (e.getDate().equals(date)) {
+                // Проверка за застъпване на часовете
+                if (!(end.isBefore(e.getStartTime()) || start.isAfter(e.getEndTime()) ||
+                        end.equals(e.getStartTime()) || start.equals(e.getEndTime()))) {
+                    return false;
+                }
+            }
         }
         return true;
     }

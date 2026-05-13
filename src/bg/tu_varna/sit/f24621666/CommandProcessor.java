@@ -8,10 +8,10 @@ public class CommandProcessor {
     private final FileManager fileManager = new FileManager(calendarManager);
 
     public CommandProcessor() {
-        registerCommand(new OpenCommand(fileManager));
-        registerCommand(new CloseCommand(fileManager));
-        registerCommand(new SaveCommand(fileManager));
-        registerCommand(new SaveAsCommand(fileManager));
+        registerCommand(new OpenCommand(fileManager, calendarManager));
+        registerCommand(new CloseCommand(fileManager, calendarManager));
+        registerCommand(new SaveCommand(fileManager, calendarManager));
+        registerCommand(new SaveAsCommand(fileManager, calendarManager));
         registerCommand(new BookCommand(fileManager, calendarManager));
         registerCommand(new AgendaCommand(fileManager, calendarManager));
         registerCommand(new UnbookCommand(fileManager, calendarManager));
@@ -22,8 +22,8 @@ public class CommandProcessor {
         registerCommand(new FindSlotWithCommand(fileManager, calendarManager));
         registerCommand(new MergeCommand(fileManager, calendarManager));
 
-        // HelpCommand има нужда от списъка с всички команди, за да ги показва
-        registerCommand(new HelpCommand(commands.values()));
+        // Подаваме колекцията от команди на HelpCommand
+        registerCommand(new HelpCommand(fileManager, calendarManager, commands.values()));
     }
 
     private void registerCommand(Command command) {

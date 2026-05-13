@@ -1,40 +1,28 @@
 package bg.tu_varna.sit.f24621666;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 
-public class MergeCommand implements Command {
-    private final FileManager fileManager;
-    private final CalendarManager calendarManager;
+public class MergeCommand extends AbstractCommand {
 
-    public MergeCommand(FileManager fileManager, CalendarManager calendarManager) {
-        this.fileManager = fileManager;
-        this.calendarManager = calendarManager;
-    }
+    public MergeCommand(FileManager fm, CalendarManager cm) { super(fm, cm); }
 
     @Override
-    public void execute(String[] args) {
-        if (!fileManager.isOpen()) {
-            System.out.println("Error: Open a file first.");
-            return;
-        }
-        if (args.length < 1) {
-            System.out.println("Usage: merge <calendar1> [calendar2]...");
-            return;
-        }
+    protected int getMinArgs() { return 1; }
 
-        List<String> paths = new ArrayList<>();
-        for (String arg : args) {
-            paths.add(arg);
-        }
+    @Override
+    protected String getUsage() { return "Usage: merge <file1> [file2]..."; }
 
-        Scanner scanner = new Scanner(System.in);
-        calendarManager.mergeWithCalendars(paths, scanner);
+    @Override
+    protected void executeLogic(String[] args) {
+        List<String> paths = Arrays.asList(args);
+        calendarManager.mergeWithCalendars(paths, this.scanner);
+        fileManager.markChanged();
     }
 
     @Override
     public String getName() { return "merge"; }
+
     @Override
-    public String getHelp() { return "merge <calendar>... - merges multiple calendars into current one"; }
+    public String getHelp() { return "merge <file>... - merges external calendars"; }
 }

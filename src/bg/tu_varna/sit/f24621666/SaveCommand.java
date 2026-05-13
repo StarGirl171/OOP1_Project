@@ -1,24 +1,20 @@
 package bg.tu_varna.sit.f24621666;
 
-public class SaveCommand implements Command {
-    private final FileManager fileManager;
-
-    public SaveCommand(FileManager fileManager) {
-        this.fileManager = fileManager;
-    }
+public class SaveCommand extends AbstractCommand {
+    public SaveCommand(FileManager fm, CalendarManager cm) { super(fm, cm); }
 
     @Override
-    public void execute(String[] args) {
-        if (!fileManager.isOpen()) {
-            System.out.println("Error: Please open a file first.");
-            return;
-        }
-        fileManager.save();
-    }
+    protected int getMinArgs() { return 0; }
+
+    @Override
+    protected String getUsage() { return "Usage: save"; }
+
+    @Override
+    protected void executeLogic(String[] args) { fileManager.save(); }
 
     @Override
     public String getName() { return "save"; }
 
     @Override
-    public String getHelp() { return "save - saves the currently open file"; }
+    public String getHelp() { return "save - saves changes to the current file"; }
 }

@@ -2,25 +2,27 @@ package bg.tu_varna.sit.f24621666;
 
 import java.util.Collection;
 
-public class HelpCommand implements Command {
-    private final Collection<Command> commands;
+import java.util.Collection;
 
-    public HelpCommand(Collection<Command> commands) {
-        this.commands = commands;
+public class HelpCommand extends AbstractCommand {
+    private final Collection<Command> allCommands;
+
+    public HelpCommand(FileManager fm, CalendarManager cm, Collection<Command> commands) {
+        super(fm, cm); // не ни трябват но ги подаваме, за да спазим структурата
+        this.allCommands = commands;
     }
 
+    @Override protected boolean requiresOpenFile() { return false; }
+    @Override protected int getMinArgs() { return 0; }
+    @Override protected String getUsage() { return "Usage: help"; }
+
     @Override
-    public void execute(String[] args) {
+    protected void executeLogic(String[] args) {
         System.out.println("The following commands are supported:");
-        for (Command cmd : commands) {
-            System.out.println(cmd.getHelp());
-        }
+        allCommands.forEach(cmd -> System.out.println(cmd.getHelp()));
         System.out.println("exit - exists the program");
     }
 
-    @Override
-    public String getName() { return "help"; }
-
-    @Override
-    public String getHelp() { return "help - prints this information"; }
+    @Override public String getName() { return "help"; }
+    @Override public String getHelp() { return "help - prints this information"; }
 }

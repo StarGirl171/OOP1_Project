@@ -2,38 +2,25 @@ package bg.tu_varna.sit.f24621666;
 
 import java.time.LocalDate;
 
-public class HolidayCommand implements Command {
-    private final FileManager fileManager;
-    private final CalendarManager calendarManager;
+public class HolidayCommand extends AbstractCommand {
 
-    public HolidayCommand(FileManager fileManager, CalendarManager calendarManager) {
-        this.fileManager = fileManager;
-        this.calendarManager = calendarManager;
-    }
+    public HolidayCommand(FileManager fm, CalendarManager cm) { super(fm, cm); }
 
     @Override
-    public void execute(String[] args) {
-        if (!fileManager.isOpen()) {
-            System.out.println("Error: Please open a file first.");
-            return;
-        }
+    protected int getMinArgs() { return 1; }
 
-        if (args.length < 1) {
-            System.out.println("Usage: holiday <date>");
-            return;
-        }
+    @Override
+    protected String getUsage() { return "Usage: holiday <date>"; }
 
-        try {
-            LocalDate date = LocalDate.parse(args[0]);
-            calendarManager.addHoliday(date);
-        } catch (Exception e) {
-            System.out.println("Error: Invalid date format. Use YYYY-MM-DD.");
-        }
+    @Override
+    protected void executeLogic(String[] args) {
+        calendarManager.addHoliday(LocalDate.parse(args[0]));
+        fileManager.markChanged();
     }
 
     @Override
     public String getName() { return "holiday"; }
 
     @Override
-    public String getHelp() { return "holiday <date> - marks the date as non-working"; }
+    public String getHelp() { return "holiday <date> - marks date as non-working"; }
 }

@@ -18,27 +18,19 @@ public class Event {
         this.note = note;
     }
 
-    public LocalTime getStartTime() {
-        return startTime;
+    public boolean isValid() {
+        if (startTime == null || endTime == null) return false;
+        return startTime.isBefore(endTime);
     }
 
-    public LocalTime getEndTime() {
-        return endTime;
-    }
+    public LocalTime getStartTime() { return startTime; }
+    public LocalTime getEndTime() { return endTime; }
+    public String getName() { return name; }
+    public String getNote() { return note; }
+    public LocalDate getDate() { return date; }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getNote() {
-        return note;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
+    @Override
     public String toString() {
-        return startTime + "-" + endTime + " | " + name + " | " + note;
+        return String.format("%s-%s | %s | %s", startTime, endTime, name, note);
     }
 }
