@@ -32,8 +32,12 @@ public abstract class AbstractCommand implements Command {
 
         try {
             executeLogic(args);
+        } catch (java.time.format.DateTimeParseException e) {
+            System.out.println("Error: Invalid date or time format. Please use YYYY-MM-DD and HH:mm.");
+        } catch (NumberFormatException e) {
+            System.out.println("Error: Expected a number, but got text.");
         } catch (Exception e) {
-            System.out.println("Error: Invalid parameters or execution failed.");
+            System.out.println("Error: An unexpected error occurred: " + e.getMessage());
         }
     }
 
