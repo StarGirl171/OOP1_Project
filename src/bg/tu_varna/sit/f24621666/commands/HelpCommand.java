@@ -4,6 +4,7 @@ import bg.tu_varna.sit.f24621666.core.CalendarManager;
 import bg.tu_varna.sit.f24621666.core.FileManager;
 
 import java.util.Collection;
+import java.util.Comparator;
 
 public class HelpCommand extends AbstractCommand {
     private final Collection<Command> allCommands;
@@ -25,8 +26,9 @@ public class HelpCommand extends AbstractCommand {
     @Override
     protected void executeLogic(String[] args) {
         System.out.println("The following commands are supported:");
-        allCommands.forEach(cmd -> System.out.println(cmd.getHelp()));
-        System.out.println("exit - exists the program");
+        allCommands.stream()
+                .sorted(Comparator.comparing(Command::getName)) // Сортираме ги по азбучен ред
+                .forEach(cmd -> System.out.println("  " + cmd.getHelp()));
     }
 
     @Override

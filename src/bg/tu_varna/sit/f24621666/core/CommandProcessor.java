@@ -24,6 +24,7 @@ public class CommandProcessor {
         registerCommand(new FindSlotWithCommand(fileManager, calendarManager));
         registerCommand(new FindSlotCommand(fileManager, calendarManager));
         registerCommand(new MergeCommand(fileManager, calendarManager));
+        registerCommand(new ExitCommand(fileManager, calendarManager));
 
         // Подаваме колекцията от команди на HelpCommand
         HelpCommand help = new HelpCommand(fileManager, calendarManager, commands.values());
@@ -35,22 +36,21 @@ public class CommandProcessor {
     }
 
     public boolean processCommand(String input) {
-        // Този израз разделя по интервали, но запазва текста в кавичките като един елемент
+        if (input == null || input.trim().isEmpty()) return true;
+
         String[] parts = input.trim().split("\\s+(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+        for (int i = 0; i < parts.length; i++) parts[i] = parts[i].replace("\"", "");
 
-        // След това махаме кавичките от самите аргументи, за да не се пазят в базата
-        for (int i = 0; i < parts.length; i++) {
-            parts[i] = parts[i].replace("\"", "");
-        }        String commandName = parts[0];
+        String commandName = parts[0].toLowerCase();
 
+        // Специална проверка за exit, за да излезем елегантно от цикъла в Main
         if (commandName.equals("exit")) {
-            System.out.println("Exiting...");
+            commands.get("exit").execute(new String[0]);
             return false;
         }
 
         Command command = commands.get(commandName);
         if (command != null) {
-            // Махаме първата част (името на командата) и пращаме само аргументите
             String[] args = new String[parts.length - 1];
             System.arraycopy(parts, 1, args, 0, parts.length - 1);
             command.execute(args);
