@@ -1,7 +1,6 @@
 package bg.tu_varna.sit.f24621666;
 
 import bg.tu_varna.sit.f24621666.core.CommandProcessor;
-
 import java.util.Scanner;
 
 public class Main {
@@ -10,17 +9,13 @@ public class Main {
         CommandProcessor processor = new CommandProcessor();
 
         System.out.println("Welcome!");
-        System.out.println("Type 'help' to see commands.");
+        boolean running = true;
 
-        while (true) {
+        while (running) {
             System.out.print("> ");
+            if (!scanner.hasNextLine()) break; // Защита от неочакван край на входа
             String input = scanner.nextLine();
-
-            boolean continueProgram = processor.processCommand(input);
-
-            if (!continueProgram) {
-                break;
-            }
+            running = processor.processCommand(input);
         }
         scanner.close();
     }
