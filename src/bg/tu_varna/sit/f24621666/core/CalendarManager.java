@@ -2,6 +2,7 @@ package bg.tu_varna.sit.f24621666.core;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -24,6 +25,10 @@ public class CalendarManager {
         if (!event.isValid()) {
             System.out.println("Error: Invalid event time range (start must be before end).");
             return false;
+        }
+
+        if (event.getDate().isBefore(LocalDate.now())) {
+            System.out.println("Warning: You are booking an event in the past.");
         }
 
         if (isSlotFree(event.getDate(), event.getStartTime(), event.getEndTime())) {
@@ -203,6 +208,12 @@ public class CalendarManager {
             List<Event> externalEvents = loadEventsFromFile(path);
 
             for (Event other : externalEvents) {
+                // ПЪРВО: Проверяваме дали събитието вече съществува 1 към 1
+                if (isEventAlreadyPresent(other)) {
+                    continue; // Прескачаме го тихо, защото е същото
+                }
+
+                // ВТОРО: Ако не е същото, търсим конфликт в часовете
                 Event conflict = findConflictingEvent(other);
 
                 if (conflict == null) {
@@ -215,43 +226,95 @@ public class CalendarManager {
         System.out.println("Merge process completed.");
     }
 
+    // Помощен метод за проверка на 100% еднакви събития
+    private boolean isEventAlreadyPresent(Event other) {
+        for (Event e : events) {
+            if (e.getDate().equals(other.getDate()) &&
+                    e.getStartTime().equals(other.getStartTime()) &&
+                    e.getEndTime().equals(other.getEndTime()) &&
+                    e.getName().equals(other.getName()) &&
+                    e.getNote().equals(other.getNote())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void handleConflict(Event existing, Event other, Scanner scanner) {
-        System.out.println("\nCONFLICT found for date " + other.getDate());
-        System.out.println("Existing: " + existing);
-        System.out.println("New from file: " + other);
-        System.out.print("Choose: [1] Keep Existing, [2] Replace with New, [3] Move New to other time: ");
+        System.out.println("\n--- CONFLICT on " + other.getDate() + " ---");
+        System.out.println("[E] Existing: " + existing);
+        System.out.println("[N] New:      " + other);
+        System.out.println("Options:");
+        System.out.println("1. Keep Existing (Discard New)");
+        System.out.println("2. Replace Existing with New");
+        System.out.println("3. Move NEW event to another time");
+        System.out.println("4. Move EXISTING event to another time and keep New here");
+        System.out.println("5. Move BOTH to new times");
+        System.out.print("Choice: ");
 
         String choice = scanner.nextLine();
         switch (choice) {
+            case "1":
+                System.out.println("Keeping existing.");
+                break;
             case "2":
                 events.remove(existing);
                 events.add(other);
-                System.out.println("Event replaced.");
+                System.out.println("Replaced.");
                 break;
             case "3":
-                moveEventToNewTime(other, scanner);
+                moveEventWithRetry(other, scanner);
+                break;
+            case "4":
+                if (moveEventWithRetry(existing, scanner)) {
+                    events.remove(existing);
+                    events.add(other);
+                    System.out.println("Existing moved, New placed in its old slot.");
+                }
+                break;
+            case "5":
+                System.out.println("Moving both events...");
+                if (moveEventWithRetry(existing, scanner)) {
+                    events.remove(existing);
+                    moveEventWithRetry(other, scanner);
+                }
                 break;
             default:
-                System.out.println("Keeping existing event.");
+                System.out.println("Invalid choice. Skipping conflict.");
                 break;
         }
     }
 
-    private void moveEventToNewTime(Event event, Scanner scanner) {
-        System.out.println("Enter new start and end time (HH:mm HH:mm):");
-        try {
-            String[] times = scanner.nextLine().split(" ");
-            LocalTime newS = LocalTime.parse(times[0]);
-            LocalTime newE = LocalTime.parse(times[1]);
+    // Подобрен метод с цикъл (Retry), за да не "изхвърля" при една грешка
+    private boolean moveEventWithRetry(Event event, Scanner scanner) {
+        while (true) {
+            System.out.println("Enter new start and end time for [" + event.getName() + "] (HH:mm HH:mm) or 'cancel':");
+            String input = scanner.nextLine();
 
-            if (isSlotFree(event.getDate(), newS, newE)) {
-                events.add(new Event(event.getDate(), newS, newE, event.getName(), event.getNote()));
-                System.out.println("Moved and added.");
-            } else {
-                System.out.println("Error: New slot is occupied.");
+            if (input.equalsIgnoreCase("cancel")) return false;
+
+            try {
+                String[] times = input.split("\\s+");
+                if (times.length < 2) throw new Exception();
+
+                LocalTime newS = LocalTime.parse(times[0]);
+                LocalTime newE = LocalTime.parse(times[1]);
+
+                if (newS.isAfter(newE) || newS.equals(newE)) {
+                    System.out.println("Error: Start time must be before end time.");
+                    continue;
+                }
+
+                if (isSlotFree(event.getDate(), newS, newE)) {
+                    events.add(new Event(event.getDate(), newS, newE, event.getName(), event.getNote()));
+                    System.out.println("Successfully moved.");
+                    return true;
+                } else {
+                    System.out.println("Error: That slot is already occupied. Try again.");
+                }
+            } catch (Exception e) {
+                System.out.println("Error: Invalid time format (use HH:mm HH:mm). Try again.");
             }
-        } catch (Exception e) {
-            System.out.println("Invalid input. Skipping event.");
         }
     }
 
@@ -322,44 +385,29 @@ public class CalendarManager {
         }
     }
 
-    void loadEventFromLine(String line) {
-        try {
-            String[] p = line.split(",");
-
-            if (p[0].equalsIgnoreCase("E") && p.length == 6) {
-                Event event = parseEvent(p);
-
-                if (event != null) {
-                    events.add(event);
-                }
-            } else if (p[0].equalsIgnoreCase("H") && p.length == 2) {
-                holidays.add(LocalDate.parse(p[1]));
-            }
-        } catch (Exception e) {
-            // Пропускаме невалидни редове
+    public void loadLine(String line) {
+        String[] parts = line.split(",");
+        Event e = EventParser.parseEvent(parts);
+        if (e != null) {
+            events.add(e);
+            return;
         }
+        LocalDate h = EventParser.parseHoliday(parts);
+        if (h != null) holidays.add(h);
     }
 
-    // Помощен метод, който зарежда събития от ВЪНШЕН файл, без да променя текущите
     public List<Event> loadEventsFromFile(String filePath) {
-
-        List<Event> externalEvents = new ArrayList<>();
+        List<Event> external = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-
             String line;
             while ((line = reader.readLine()) != null) {
-
-                String[] p = line.split(",");
-                if (p[0].equalsIgnoreCase("E") && p.length == 6) {
-
-                    Event event = parseEvent(p);
-                    if (event != null) externalEvents.add(event);
-                }
+                Event e = EventParser.parseEvent(line.split(","));
+                if (e != null) external.add(e);
             }
-        } catch (Exception e) {
-            System.out.println("Error reading external calendar: " + filePath);
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + filePath);
         }
-        return externalEvents;
+        return external;
     }
 
     private Event parseEvent(String[] p) {
