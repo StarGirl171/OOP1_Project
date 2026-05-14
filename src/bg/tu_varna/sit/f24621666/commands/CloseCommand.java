@@ -3,21 +3,36 @@ package bg.tu_varna.sit.f24621666.commands;
 import bg.tu_varna.sit.f24621666.core.CalendarManager;
 import bg.tu_varna.sit.f24621666.core.FileManager;
 
+/**
+ * Command to terminate the current file session and clear memory.
+ */
 public class CloseCommand extends AbstractCommand {
+    /**
+     * Constructs CloseCommand.
+     * @param fm FileManager reference.
+     * @param cm CalendarManager reference.
+     */
     public CloseCommand(FileManager fm, CalendarManager cm) { super(fm, cm); }
 
-    @Override
-    protected int getMinArgs() { return 0; }
+    /** @return 0 arguments. */
+    @Override protected int getMinArgs() { return 0; }
 
-    @Override
-    protected String getUsage() { return "Usage: close"; }
+    /** @return usage string. */
+    @Override protected String getUsage() { return "Usage: close"; }
 
+    /**
+     * Executes the closure logic.
+     * @param args No arguments.
+     */
     @Override
-    protected void executeLogic(String[] args) { fileManager.close(); }
+    protected void executeLogic(String[] args) {
+        // Затваряме файла и изчистваме текущите събития
+        fileManager.close();
+    }
 
-    @Override
-    public String getName() { return "close"; }
+    /** @return "close" */
+    @Override public String getName() { return "close"; }
 
-    @Override
-    public String getHelp() { return "close - closes the current file"; }
+    /** @return help string. */
+    @Override public String getHelp() { return "close - closes currently opened file"; }
 }

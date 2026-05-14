@@ -2,38 +2,55 @@ package bg.tu_varna.sit.f24621666.commands;
 
 import bg.tu_varna.sit.f24621666.core.CalendarManager;
 import bg.tu_varna.sit.f24621666.core.FileManager;
-
 import java.util.Collection;
 import java.util.Comparator;
 
+/**
+ * Command that lists all available commands in the system with their descriptions.
+ */
 public class HelpCommand extends AbstractCommand {
+    /** A collection of all command objects to be listed. */
     private final Collection<Command> allCommands;
 
-    public HelpCommand(FileManager fm, CalendarManager cm, Collection<Command> commands) {
-        super(fm, cm); // не ни трябват но ги подаваме, за да спазим структурата
-        this.allCommands = commands;
+    /**
+     * Constructs HelpCommand.
+     * @param fm FileManager reference.
+     * @param cm CalendarManager reference.
+     * @param allCommands List of all registered commands.
+     */
+    public HelpCommand(FileManager fm, CalendarManager cm, Collection<Command> allCommands) {
+        super(fm, cm);
+        this.allCommands = allCommands;
     }
 
-    @Override
-    protected boolean requiresOpenFile() { return false; }
+    /**
+     * Help can be shown even if no file is open.
+     * @return false.
+     */
+    @Override protected boolean requiresOpenFile() { return false; }
 
-    @Override
-    protected int getMinArgs() { return 0; }
+    /** @return 0 arguments. */
+    @Override protected int getMinArgs() { return 0; }
 
-    @Override
-    protected String getUsage() { return "Usage: help"; }
+    /** @return usage string. */
+    @Override protected String getUsage() { return "Usage: help"; }
 
+    /**
+     * Displays a sorted list of all commands.
+     * @param args No arguments.
+     */
     @Override
     protected void executeLogic(String[] args) {
         System.out.println("The following commands are supported:");
+        // Сортираме командите по име за по-лесно четене
         allCommands.stream()
-                .sorted(Comparator.comparing(Command::getName)) // Сортираме ги по азбучен ред
+                .sorted(Comparator.comparing(Command::getName))
                 .forEach(cmd -> System.out.println("  " + cmd.getHelp()));
     }
 
-    @Override
-    public String getName() { return "help"; }
+    /** @return "help" */
+    @Override public String getName() { return "help"; }
 
-    @Override
-    public String getHelp() { return "help - prints this information"; }
+    /** @return help string. */
+    @Override public String getHelp() { return "help - prints this help message"; }
 }

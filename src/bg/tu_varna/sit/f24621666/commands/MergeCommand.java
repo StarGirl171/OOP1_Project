@@ -2,29 +2,39 @@ package bg.tu_varna.sit.f24621666.commands;
 
 import bg.tu_varna.sit.f24621666.core.CalendarManager;
 import bg.tu_varna.sit.f24621666.core.FileManager;
-
 import java.util.Arrays;
-import java.util.List;
 
+/**
+ * Command to merge events from one or more external files into the current calendar.
+ */
 public class MergeCommand extends AbstractCommand {
+    /**
+     * Constructs MergeCommand.
+     * @param fm FileManager reference.
+     * @param cm CalendarManager reference.
+     */
     public MergeCommand(FileManager fm, CalendarManager cm) { super(fm, cm); }
 
-    @Override
-    protected int getMinArgs() { return 1; }
+    /** @return 1 (at least one file to merge). */
+    @Override protected int getMinArgs() { return 1; }
 
-    @Override
-    protected String getUsage() { return "Usage: merge <file1> [file2]..."; }
+    /** @return usage string. */
+    @Override protected String getUsage() { return "Usage: merge <file1> [file2] ..."; }
 
+    /**
+     * Triggers the multi-file merge logic using the protected scanner for conflicts.
+     * @param args List of file paths.
+     */
     @Override
     protected void executeLogic(String[] args) {
-        List<String> paths = Arrays.asList(args);
-        calendarManager.mergeWithCalendars(paths, this.scanner);
+        // Извикваме логиката за сливане, като предаваме скенера от AbstractCommand
+        calendarManager.mergeWithCalendars(Arrays.asList(args), this.scanner);
         fileManager.markChanged();
     }
 
-    @Override
-    public String getName() { return "merge"; }
+    /** @return "merge" */
+    @Override public String getName() { return "merge"; }
 
-    @Override
-    public String getHelp() { return "merge <file>... - merges external calendars"; }
+    /** @return help string. */
+    @Override public String getHelp() { return "merge <file> - merges external calendar into current"; }
 }

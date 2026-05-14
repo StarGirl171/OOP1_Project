@@ -3,37 +3,67 @@ package bg.tu_varna.sit.f24621666.commands;
 import bg.tu_varna.sit.f24621666.core.CalendarManager;
 import bg.tu_varna.sit.f24621666.core.Event;
 import bg.tu_varna.sit.f24621666.core.FileManager;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+/**
+ * Command responsible for scheduling new events in the calendar.
+ */
 public class BookCommand extends AbstractCommand {
-    public BookCommand(FileManager fm, CalendarManager cm) { super(fm, cm); }
+    /**
+     * Constructs BookCommand.
+     * @param fm FileManager reference.
+     * @param cm CalendarManager reference.
+     */
+    public BookCommand(FileManager fm, CalendarManager cm) {
+        super(fm, cm);
+    }
 
-    @Override
-    protected int getMinArgs() { return 5; }
+    /**
+     * Minimum arguments for booking.
+     * @return 5 (date, start, end, name, note).
+     */
+    @Override protected int getMinArgs() { return 5; }
 
-    @Override
-    protected String getUsage() { return "Usage: book <date> <start> <end> <name> <note>"; }
+    /**
+     * Returns usage syntax.
+     * @return usage string.
+     */
+    @Override protected String getUsage() {
+        return "Usage: book <date> <startTime> <endTime> <name> <note>";
+    }
 
+    /**
+     * Parses input and adds the event to the manager.
+     * @param args Parsed user inputs.
+     * @throws Exception if data types are invalid.
+     */
     @Override
     protected void executeLogic(String[] args) throws Exception {
-        Event event = new Event(
-                LocalDate.parse(args[0]),
-                LocalTime.parse(args[1]),
-                LocalTime.parse(args[2]),
-                args[3],
-                args[4]
-        );
+        // Парсваме аргументите към съответните типове
+        LocalDate date = LocalDate.parse(args[0]);
+        LocalTime start = LocalTime.parse(args[1]);
+        LocalTime end = LocalTime.parse(args[2]);
+        String name = args[3];
+        String note = args[4];
 
-        if (calendarManager.addEvent(event)) {
+        Event newEvent = new Event(date, start, end, name, note);
+
+        // Опитваме да добавим събитието и ако е успешно, маркираме промяна
+        if (calendarManager.addEvent(newEvent)) {
             fileManager.markChanged();
         }
     }
 
-    @Override
-    public String getName() { return "book"; }
+    /**
+     * Gets the command identifier.
+     * @return "book"
+     */
+    @Override public String getName() { return "book"; }
 
-    @Override
-    public String getHelp() { return "book <date> <start> <end> <name> <note> - schedules an event"; }
+    /**
+     * Gets the documentation help.
+     * @return help string.
+     */
+    @Override public String getHelp() { return "book <date> <start> <end> <name> <note> - creates an event"; }
 }
