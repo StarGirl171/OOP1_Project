@@ -2,6 +2,7 @@ package bg.tu_varna.sit.f24621666.core;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Objects;
 
 public class Event {
     private final LocalDate date;
@@ -28,6 +29,23 @@ public class Event {
     public String getName() { return name; }
     public String getNote() { return note; }
     public LocalDate getDate() { return date; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Event event = (Event) o;
+        return date.equals(event.date) &&
+                startTime.equals(event.startTime) &&
+                endTime.equals(event.endTime) &&
+                name.equals(event.name) &&
+                note.equals(event.note);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(date, startTime, endTime, name, note);
+    }
 
     @Override
     public String toString() {

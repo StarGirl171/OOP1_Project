@@ -1,8 +1,7 @@
 package bg.tu_varna.sit.f24621666.core;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -42,26 +41,13 @@ public class CalendarManager {
     }
 
     // Метод за изтриване на събитие
-    public void removeEvent(LocalDate date, LocalTime startTime, LocalTime endTime) {
-
-        Iterator<Event> iterator = events.iterator();
-        boolean found = false;
-
-        while (iterator.hasNext()) {
-            Event e = iterator.next();
-            // Проверяваме дали съвпадат датата и часовете
-            if (e.getDate().equals(date) && e.getStartTime().equals(startTime) && e.getEndTime().equals(endTime)) {
-                iterator.remove();
-                found = true;
-                break;
-            }
-        }
-
-        if (found) {
-            System.out.println("Event unbooked successfully.");
-        } else {
-            System.out.println("Error: No such event found on this date and time.");
-        }
+    public void removeEvent(LocalDate date, LocalTime start, LocalTime end) {
+        Event toRemove = new Event(date, start, end, "", "");
+        boolean removed = events.removeIf(e -> e.getDate().equals(date) &&
+                e.getStartTime().equals(start) &&
+                e.getEndTime().equals(end));
+        if (removed) System.out.println("Event unbooked successfully.");
+        else System.out.println("Error: Event not found.");
     }
 
     public void showAgenda(LocalDate date) {
@@ -192,7 +178,6 @@ public class CalendarManager {
     private boolean isSlotFreeInList(List<Event> eventList, LocalDate date, LocalTime start, LocalTime end) {
         for (Event e : eventList) {
             if (e.getDate().equals(date)) {
-                // Проверка за застъпване на часовете
                 if (!(end.isBefore(e.getStartTime()) || start.isAfter(e.getEndTime()) ||
                         end.equals(e.getStartTime()) || start.equals(e.getEndTime()))) {
                     return false;
@@ -228,16 +213,7 @@ public class CalendarManager {
 
     // Помощен метод за проверка на 100% еднакви събития
     private boolean isEventAlreadyPresent(Event other) {
-        for (Event e : events) {
-            if (e.getDate().equals(other.getDate()) &&
-                    e.getStartTime().equals(other.getStartTime()) &&
-                    e.getEndTime().equals(other.getEndTime()) &&
-                    e.getName().equals(other.getName()) &&
-                    e.getNote().equals(other.getNote())) {
-                return true;
-            }
-        }
-        return false;
+        return events.contains(other);
     }
 
     private void handleConflict(Event existing, Event other, Scanner scanner) {
@@ -285,7 +261,6 @@ public class CalendarManager {
         }
     }
 
-    // Подобрен метод с цикъл (Retry), за да не "изхвърля" при една грешка
     private boolean moveEventWithRetry(Event event, Scanner scanner) {
         while (true) {
             System.out.println("Enter new start and end time for [" + event.getName() + "] (HH:mm HH:mm) or 'cancel':");
@@ -387,41 +362,30 @@ public class CalendarManager {
 
     public void loadLine(String line) {
         String[] parts = line.split(",");
-        Event e = EventParser.parseEvent(parts);
-        if (e != null) {
-            events.add(e);
-            return;
+        if (parts[0].equals("E")) {
+            Event e = EventParser.parseEvent(parts);
+            if (e != null) events.add(e);
+        } else if (parts[0].equals("H")) {
+            LocalDate h = EventParser.parseHoliday(parts);
+            if (h != null) holidays.add(h);
         }
-        LocalDate h = EventParser.parseHoliday(parts);
-        if (h != null) holidays.add(h);
     }
 
     public List<Event> loadEventsFromFile(String filePath) {
         List<Event> external = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath), StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                Event e = EventParser.parseEvent(line.split(","));
-                if (e != null) external.add(e);
+                String[] parts = line.split(",");
+                if (parts[0].equals("E")) {
+                    Event e = EventParser.parseEvent(parts);
+                    if (e != null) external.add(e);
+                }
             }
         } catch (IOException e) {
             System.out.println("Error reading file: " + filePath);
         }
         return external;
-    }
-
-    private Event parseEvent(String[] p) {
-        try {
-            return new Event(
-                    LocalDate.parse(p[1]),
-                    LocalTime.parse(p[2]),
-                    LocalTime.parse(p[3]),
-                    p[4],
-                    p[5]
-            );
-        } catch (Exception e) {
-            return null; // Връщаме null, ако данните са грешни
-        }
     }
 
     public void clearEvents() {
