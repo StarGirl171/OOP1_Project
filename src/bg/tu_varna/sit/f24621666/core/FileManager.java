@@ -1,10 +1,10 @@
 package bg.tu_varna.sit.f24621666.core;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 
 public class FileManager {
-
     private File currentFile;
     private boolean isOpen = false;
     private boolean hasUnsavedChanges = false;
@@ -48,6 +48,7 @@ public class FileManager {
     public void close() {
         if (hasUnsavedChanges) {
             System.out.println("Warning: Unsaved changes will be lost.");
+            return;
         }
         calendarManager.clearEvents();
         currentFile = null;
@@ -58,9 +59,9 @@ public class FileManager {
 
     public void save() {
         if (!isOpen) return;
-        try (PrintWriter writer = new PrintWriter(new FileWriter(currentFile))) {
+        try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(currentFile), StandardCharsets.UTF_8))) {
             for (Event e : calendarManager.getAllEvents()) {
-                writer.println("E," + e.getDate() + "," + e.getStartTime() + "," + e.getEndTime() + "," + e.getName() + "," + e.getNote());
+                writer.println(EventParser.toCSV(e));
             }
             for (LocalDate date : calendarManager.getAllHolidays()) {
                 writer.println("H," + date);

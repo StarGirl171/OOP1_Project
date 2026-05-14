@@ -14,13 +14,24 @@ public class EventParser {
                     p[4],
                     p[5]
             );
-        } catch (Exception e) { return null; }
+        } catch (Exception e) {
+            System.out.println("Warning: Skipped invalid line.");
+            return null;
+        }
     }
 
     public static LocalDate parseHoliday(String[] p) {
         try {
             // Очакваме формат: H,дата
             return LocalDate.parse(p[1]);
-        } catch (Exception e) { return null; }
+        } catch (Exception e) {
+            System.out.println("Warning: Skipped invalid line.");
+            return null;
+        }
+    }
+
+    public static String toCSV(Event e) {
+        return String.format("E,%s,%s,%s,%s,%s",
+                e.getDate(), e.getStartTime(), e.getEndTime(), e.getName(), e.getNote());
     }
 }
