@@ -33,7 +33,7 @@ public class FileManager {
                 try (BufferedReader reader = new BufferedReader(new FileReader(currentFile))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
-                        calendarManager.loadEventFromLine(line);
+                        calendarManager.loadLine(line);
                     }
                 }
             }

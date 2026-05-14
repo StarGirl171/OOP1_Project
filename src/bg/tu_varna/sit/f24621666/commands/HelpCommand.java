@@ -13,9 +13,14 @@ public class HelpCommand extends AbstractCommand {
         this.allCommands = commands;
     }
 
-    @Override protected boolean requiresOpenFile() { return false; }
-    @Override protected int getMinArgs() { return 0; }
-    @Override protected String getUsage() { return "Usage: help"; }
+    @Override
+    protected boolean requiresOpenFile() { return false; }
+
+    @Override
+    protected int getMinArgs() { return 0; }
+
+    @Override
+    protected String getUsage() { return "Usage: help"; }
 
     @Override
     protected void executeLogic(String[] args) {
@@ -24,6 +29,9 @@ public class HelpCommand extends AbstractCommand {
         System.out.println("exit - exists the program");
     }
 
-    @Override public String getName() { return "help"; }
-    @Override public String getHelp() { return "help - prints this information"; }
+    @Override
+    public String getName() { return "help"; }
+
+    @Override
+    public String getHelp() { return "help - prints this information"; }
 }

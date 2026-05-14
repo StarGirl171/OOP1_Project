@@ -15,7 +15,7 @@ public class HolidayCommand extends AbstractCommand {
     protected String getUsage() { return "Usage: holiday <date>"; }
 
     @Override
-    protected void executeLogic(String[] args) {
+    protected void executeLogic(String[] args) throws Exception {
         calendarManager.addHoliday(LocalDate.parse(args[0]));
         fileManager.markChanged();
     }

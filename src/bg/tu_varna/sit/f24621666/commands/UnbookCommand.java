@@ -16,11 +16,12 @@ public class UnbookCommand extends AbstractCommand {
     protected String getUsage() { return "Usage: unbook <date> <starttime> <endtime>"; }
 
     @Override
-    protected void executeLogic(String[] args) {
-        LocalDate date = LocalDate.parse(args[0]);
-        LocalTime start = LocalTime.parse(args[1]);
-        LocalTime end = LocalTime.parse(args[2]);
-        calendarManager.removeEvent(date, start, end);
+    protected void executeLogic(String[] args) throws Exception {
+        calendarManager.removeEvent(
+                LocalDate.parse(args[0]),
+                LocalTime.parse(args[1]),
+                LocalTime.parse(args[2])
+        );
         fileManager.markChanged();
     }
 

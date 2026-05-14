@@ -15,7 +15,7 @@ public class BusyDaysCommand extends AbstractCommand {
     protected String getUsage() { return "Usage: busydays <from> <to>"; }
 
     @Override
-    protected void executeLogic(String[] args) {
+    protected void executeLogic(String[] args) throws Exception {
         calendarManager.showBusyDays(LocalDate.parse(args[0]), LocalDate.parse(args[1]));
     }
 

@@ -11,12 +11,11 @@ public class ChangeCommand extends AbstractCommand {
 
     @Override
     protected int getMinArgs() { return 5; }
-
     @Override
     protected String getUsage() { return "Usage: change <date> <start> <end> <option> <newvalue>"; }
 
     @Override
-    protected void executeLogic(String[] args) {
+    protected void executeLogic(String[] args) throws Exception {
         calendarManager.changeEvent(
                 LocalDate.parse(args[0]),
                 LocalTime.parse(args[1]),

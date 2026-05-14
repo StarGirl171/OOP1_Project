@@ -17,21 +17,23 @@ public class BookCommand extends AbstractCommand {
     protected String getUsage() { return "Usage: book <date> <start> <end> <name> <note>"; }
 
     @Override
-    protected void executeLogic(String[] args) {
-        Event event = new Event(LocalDate.parse(args[0]), LocalTime.parse(args[1]),
-                LocalTime.parse(args[2]), args[3], args[4]);
-
-        if (!event.isValid()) {
-            System.out.println("Error: Start time must be before end time.");
-            return;
-        }
+    protected void executeLogic(String[] args) throws Exception {
+        Event event = new Event(
+                LocalDate.parse(args[0]),
+                LocalTime.parse(args[1]),
+                LocalTime.parse(args[2]),
+                args[3],
+                args[4]
+        );
 
         if (calendarManager.addEvent(event)) {
             fileManager.markChanged();
         }
     }
 
-    @Override public String getName() { return "book"; }
+    @Override
+    public String getName() { return "book"; }
 
-    @Override public String getHelp() { return "book <date> <start> <end> <name> <note> - schedules an event"; }
+    @Override
+    public String getHelp() { return "book <date> <start> <end> <name> <note> - schedules an event"; }
 }

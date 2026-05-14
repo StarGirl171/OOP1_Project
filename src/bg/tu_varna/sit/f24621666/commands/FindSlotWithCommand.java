@@ -18,15 +18,13 @@ public class FindSlotWithCommand extends AbstractCommand {
     protected String getUsage() { return "Usage: findslotwith <fromdate> <hours> <calendar1> [calendar2]..."; }
 
     @Override
-    protected void executeLogic(String[] args) {
+    protected void executeLogic(String[] args) throws Exception {
         LocalDate startDate = LocalDate.parse(args[0]);
         int hours = Integer.parseInt(args[1]);
 
         List<List<Event>> externalCalendars = new ArrayList<>();
-        // Обхождаме всички подадени файлове след първите два аргумента
         for (int i = 2; i < args.length; i++) {
-            List<Event> externalEvents = calendarManager.loadEventsFromFile(args[i]);
-            externalCalendars.add(externalEvents);
+            externalCalendars.add(calendarManager.loadEventsFromFile(args[i]));
         }
 
         calendarManager.findSlotWith(startDate, hours, externalCalendars);

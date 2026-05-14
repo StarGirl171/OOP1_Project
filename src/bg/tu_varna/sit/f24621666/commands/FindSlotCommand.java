@@ -14,7 +14,7 @@ public class FindSlotCommand extends AbstractCommand {
     protected String getUsage() { return "Usage: findslot <date> <hours>"; }
 
     @Override
-    protected void executeLogic(String[] args) {
+    protected void executeLogic(String[] args) throws Exception {
         calendarManager.findSlot(LocalDate.parse(args[0]), Integer.parseInt(args[1]));
     }
 
