@@ -49,10 +49,13 @@ public class BookCommand extends AbstractCommand {
 
         Event newEvent = new Event(date, start, end, name, note);
 
-        // Опитваме да добавим събитието и ако е успешно, маркираме промяна
-        if (calendarManager.addEvent(newEvent)) {
-            fileManager.markChanged();
-        }
+        // 3. Просто извикваме addEvent.
+        // Не ни трябва if-else тук, защото ако има проблем,
+        // addEvent ще "хвърли" изключение, което AbstractCommand ще хване автоматично.
+        calendarManager.addEvent(newEvent);
+
+        // Ако addEvent не хвърли грешка, кодът продължава тук и маркираме промяна за запис
+        fileManager.markChanged();
     }
 
     /**

@@ -2,6 +2,8 @@ package bg.tu_varna.sit.f24621666.commands;
 
 import bg.tu_varna.sit.f24621666.core.CalendarManager;
 import bg.tu_varna.sit.f24621666.core.FileManager;
+import bg.tu_varna.sit.f24621666.exceptions.*;
+
 import java.util.Scanner;
 
 /**
@@ -37,31 +39,40 @@ public abstract class AbstractCommand implements Command {
      */
     @Override
     public void execute(String[] args) {
-        // 1. Централизирана проверка дали командата изисква отворен файл
-        if (requiresOpenFile() && !fileManager.isOpen()) {
-            System.out.println("Error: Please open a file first.");
-            return;
-        }
+       try {
+            // 1. Централизирана проверка дали командата изисква отворен файл
+            if (requiresOpenFile() && !fileManager.isOpen()) {
+                throw new CalendarException("Error: Please open a file first.");
+            }
 
-        // 2. Проверка за минимален брой аргументи, за да избегнем ArrayIndexOutOfBounds
-        if (args.length < getMinArgs()) {
-            System.out.println(getUsage());
-            return;
-        }
+            // 2. Проверка за минимален брой аргументи, за да избегнем ArrayIndexOutOfBounds
+            if (args.length < getMinArgs()) {
+                throw new InvalidCommandArgumentException("Error: Not enough arguments.\n" + getUsage());
+            }
 
-        // 3. Изпълнение на логиката с общо прихващане на най-честите грешки
-        try {
-            executeLogic(args);
-        } catch (java.time.format.DateTimeParseException e) {
-            // Автоматично хващаме грешни формати на дати/час за всички команди
-            System.out.println("Error: Invalid date or time format. Please use YYYY-MM-DD and HH:mm.");
-        } catch (NumberFormatException e) {
-            // Хващаме случаи, в които се очаква число (напр. часове), но е подаден текст
-            System.out.println("Error: Expected a number, but got text.");
-        } catch (Exception e) {
-            // Защита от неочаквани грешки по време на изпълнение
-            System.out.println("Error: An unexpected error occurred: " + e.getMessage());
-        }
+            // 3. Изпълнение на логиката с прихващане на грешките от най-специфичните към най-общите
+               executeLogic(args);
+       } catch (InvalidCommandArgumentException e) {
+           System.out.println(e.getMessage());
+       } catch (DateOverlapException e) {
+           System.out.println("CONFLICT: " + e.getMessage());
+       } catch (HolidayConflictException e) {
+           System.out.println("CALENDAR RESTRICTION: " + e.getMessage());
+       } catch (InvalidTimeException e) {
+           System.out.println("TIME ERROR: " + e.getMessage());
+       } catch (CalendarException e) {
+           // Общ хендлър за всички останали наши грешки
+           System.out.println(e.getMessage());
+       } catch (java.time.format.DateTimeParseException e) {
+           System.out.println("FORMAT ERROR: Date/Time must be YYYY-MM-DD / HH:mm.");
+       } catch (NumberFormatException e) {
+           // Хващаме случаи, в които се очаква число (напр. часове), но е подаден текст
+           System.out.println("Error: Expected a number, but got text.");
+       } catch (Exception e) {
+           // Защита от неочаквани грешки по време на изпълнение
+           String msg = (e.getMessage() != null) ? e.getMessage() : "An unknown error occurred.";
+           System.out.println("UNEXPECTED ERROR: " + msg);
+       }
     }
 
     /**
