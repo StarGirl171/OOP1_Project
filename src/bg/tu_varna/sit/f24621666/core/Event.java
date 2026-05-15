@@ -41,7 +41,8 @@ public class Event {
     }
 
     /**
-     * Checks if the start time is strictly before the end time.
+     * Represents a calendar entry.
+     * Checks if the start time is strictly before the end time using custom validation logic.
      * * @return true if the time range is valid, false otherwise.
      */
     public boolean isValid() {
@@ -105,11 +106,23 @@ public class Event {
     }
 
     /**
-     * Returns a string representation of the event for console display.
+     * Returns a formatted string.
+     * Uses StringBuilder to avoid unnecessary object creation in memory.
      * @return Formatted string.
      */
     @Override
     public String toString() {
-        return String.format("%s-%s | %s | %s", startTime, endTime, name, note);
+        // StringBuilder е по-бърз и по-оптимизиран за слепване на текст
+        StringBuilder sb = new StringBuilder();
+        sb.append(startTime)
+                .append(" - ")
+                .append(endTime)
+                .append(" | ")
+                .append(name);
+
+        if (note != null && !note.isEmpty()) {
+            sb.append(" [").append(note).append("]");
+        }
+        return sb.toString();
     }
 }
