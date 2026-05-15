@@ -1,5 +1,10 @@
 package bg.tu_varna.sit.f24621666.core;
 
+import bg.tu_varna.sit.f24621666.exceptions.CalendarException;
+import bg.tu_varna.sit.f24621666.exceptions.DateOverlapException;
+import bg.tu_varna.sit.f24621666.exceptions.HolidayConflictException;
+import bg.tu_varna.sit.f24621666.exceptions.InvalidTimeException;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.DayOfWeek;
@@ -11,7 +16,7 @@ import java.util.*;
 /**
  * Manages the collection of events and holidays.
  * Handles the core business logic including scheduling, conflict resolution,
- * searching, and agenda generation.
+ * and advanced validations through custom exceptions.
  */
 public class CalendarManager {
     /** List of all scheduled events in the current session. */
@@ -38,31 +43,38 @@ public class CalendarManager {
     }
 
     /**
-     * Adds a new event to the calendar if the time slot is available.
-     * * @param event The event to be added.
-     * @return true if addition was successful, false if slot is taken or invalid.
+     * Attempts to add a new event to the calendar after performing three safety checks.
+     * @param event The event to add.
+     * @return true if successful.
+     * @throws CalendarException specifically DateOverlap, HolidayConflict or InvalidTime.
      */
-    public boolean addEvent(Event event) {
+    public boolean addEvent(Event event) throws CalendarException{
         // Валидираме събитието преди всичко останало
         if (!event.isValid()) {
-            System.out.println("Error: Invalid event time range (start must be before end).");
-            return false;
+            throw new InvalidTimeException("Error: Start time (" + event.getStartTime()
+                    + ") must be before end time (" + event.getEndTime() + ").");
         }
 
-        // Проверка дали потребителят не планира нещо в миналото
+        // Проверка дали потребителят не планира нещо в миналото (предупреждение)
         if (event.getDate().isBefore(LocalDate.now())) {
             System.out.println("Warning: You are booking an event in the past.");
         }
 
-        // Проверяваме за застъпване с други събития
-        if (isSlotFree(event.getDate(), event.getStartTime(), event.getEndTime())) {
-            events.add(event);
-            System.out.println("Event added successfully.");
-            return true;
-        } else {
-            System.out.println("Error: The slot is already occupied or invalid.");
-            return false;
+        // Проверка дали не се записват събития на официални празници
+        if (holidays.contains(event.getDate())) {
+            throw new HolidayConflictException("Error: Cannot book events on a holiday (" + event.getDate() + ").");
         }
+
+        // Проверяваме за застъпване с други събития
+        if (!isSlotFree(event.getDate(), event.getStartTime(), event.getEndTime())) {
+            throw new DateOverlapException("Error: The slot " + event.getStartTime() +
+                    "-" + event.getEndTime() + " on " + event.getDate() + " is already occupied.");
+        }
+
+        // Ако и трите проверки минат, добавяме събитието
+        events.add(event);
+        System.out.println("Success: Event booked successfully.");
+        return true;
     }
 
     /**
@@ -76,7 +88,6 @@ public class CalendarManager {
         boolean removed = events.removeIf(e -> e.getDate().equals(date) &&
                 e.getStartTime().equals(startTime) &&
                 e.getEndTime().equals(endTime));
-
         if (removed) {
             System.out.println("Event unbooked successfully.");
         } else {
