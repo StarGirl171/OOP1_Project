@@ -22,7 +22,6 @@ public class Main {
         System.out.println("Personal Calendar System Loaded.");
         System.out.println("Type 'help' to see available commands.");
 
-        /** Flag to control the lifecycle of the application loop. */
         boolean running = true;
 
         // Основен цикъл на програмата

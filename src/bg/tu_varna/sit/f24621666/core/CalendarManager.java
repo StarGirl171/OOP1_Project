@@ -48,6 +48,7 @@ public class CalendarManager {
      * @return true if successful.
      * @throws CalendarException specifically DateOverlap, HolidayConflict or InvalidTime.
      */
+    @SuppressWarnings("UnusedReturnValue")
     public boolean addEvent(Event event) throws CalendarException{
         // Валидираме събитието преди всичко останало
         if (!event.isValid()) {

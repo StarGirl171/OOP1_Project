@@ -1,4 +1,4 @@
-package bg.tu_varna.sit.f24621666.commands;
+package bg.tu_varna.sit.f24621666.abstractions;
 
 import bg.tu_varna.sit.f24621666.core.CalendarManager;
 import bg.tu_varna.sit.f24621666.core.FileManager;

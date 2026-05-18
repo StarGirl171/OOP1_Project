@@ -1,5 +1,6 @@
 package bg.tu_varna.sit.f24621666.core;
 
+import bg.tu_varna.sit.f24621666.abstractions.Command;
 import bg.tu_varna.sit.f24621666.commands.*;
 import java.util.TreeMap;
 

@@ -1,4 +1,4 @@
-package bg.tu_varna.sit.f24621666.commands;
+package bg.tu_varna.sit.f24621666.abstractions;
 
 /**
  * Common interface for all executable commands in the application.
