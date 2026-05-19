@@ -347,47 +347,78 @@ public class CalendarManager {
     }
 
     /**
-     * Handles a scheduling conflict by providing multiple resolution options to the user.
+     * Handles a scheduling conflict by constructing an interactive menu
+     * and delegating the user's choice to a helper method.
      * @param existing The event already in the calendar.
      * @param other The new event trying to be added.
      * @param scanner Input source for user choice.
      */
     private void handleConflict(Event existing, Event other, Scanner scanner) {
-        System.out.println("\n--- CONFLICT on " + other.getDate() + " ---");
-        System.out.println("[E] Existing: " + existing);
-        System.out.println("[N] New:      " + other);
-        System.out.println("Options:");
-        System.out.println("1. Keep Existing (Discard New)");
-        System.out.println("2. Replace Existing with New");
-        System.out.println("3. Move NEW event to another time");
-        System.out.println("4. Move EXISTING event to another time and keep New here");
-        System.out.println("5. Move BOTH to new times");
-        System.out.print("Choice: ");
+        // Използвам Java Text Block (три кавички) за перфектно подравняване
+        String menu = """
+                
+                --- CONFLICT on %s ---
+                [E] Existing: %s
+                [N] New:      %s
+                Options:
+                1. Keep Existing (Discard New)
+                2. Replace Existing with New
+                3. Move NEW event to another time
+                4. Move EXISTING event to another time and keep New here
+                5. Move BOTH to new times
+                Choice:\s""".formatted(other.getDate(), existing, other);
 
+        System.out.print(menu);
         String choice = scanner.nextLine();
+
+        // Делегираме обработката на избора към помощния ни метод
+        processConflictChoice(choice, existing, other, scanner);
+    }
+
+    /**
+     * Helper method that encapsulates the execution logic for each conflict resolution option.
+     */
+    private void processConflictChoice(String choice, Event existing, Event other, Scanner scanner) {
         switch (choice) {
-            case "1": break;
+            case "1":
+                System.out.println("Resolution: Old event kept unchanged. New event discarded.");
+                break;
             case "2":
                 events.remove(existing);
                 events.add(other);
+                System.out.println("Resolution: Existing event replaced successfully with the new one.");
                 break;
             case "3":
-                moveEventWithRetry(other, scanner);
+                if (moveEventWithRetry(other, scanner)) {
+                    System.out.println("Resolution: New event rescheduled and added successfully. Existing event left untouched.");
+                } else {
+                    System.out.println("Resolution: Action cancelled. No changes made.");
+                }
                 break;
             case "4":
                 if (moveEventWithRetry(existing, scanner)) {
                     events.remove(existing);
                     events.add(other);
+                    System.out.println("Resolution: Existing event moved to a new slot. New event placed in the original slot.");
+                } else {
+                    System.out.println("Resolution: Action cancelled. No changes made.");
                 }
                 break;
             case "5":
                 if (moveEventWithRetry(existing, scanner)) {
                     events.remove(existing);
-                    moveEventWithRetry(other, scanner);
+                    if (moveEventWithRetry(other, scanner)) {
+                        System.out.println("Resolution: Both events successfully rescheduled and placed into new slots.");
+                    } else {
+                        events.add(existing); // Rollback
+                        System.out.println("Resolution: Action incomplete. Rolling back to original state.");
+                    }
+                } else {
+                    System.out.println("Resolution: Action cancelled. No changes made.");
                 }
                 break;
             default:
-                System.out.println("Invalid choice. Skipping conflict.");
+                System.out.println("Invalid choice. Skipping conflict resolution (No changes made).");
                 break;
         }
     }
